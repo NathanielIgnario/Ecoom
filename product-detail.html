@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Faded Indigo Denim Jacket – Premium fashion from Goarcana. Bold, durable, and effortlessly stylish.">
+    <title>Faded Indigo Denim Jacket | Goarcana</title>
+    <link rel="icon" type="image/svg+xml" href="assets/goarcana-logo.svg">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .pd-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; }
+        .pd-gallery { display: flex; gap: 16px; }
+        .pd-thumbs { display: flex; flex-direction: column; gap: 12px; }
+        .pd-thumb { width: 80px; height: 90px; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: var(--transition); }
+        .pd-thumb:hover, .pd-thumb.active { border-color: var(--primary); }
+        .pd-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .pd-main-img { flex: 1; border-radius: var(--radius-md); overflow: hidden; height: 520px; background: var(--bg-light); }
+        .pd-main-img img { width: 100%; height: 100%; object-fit: cover; }
+        .pd-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 12px; }
+        .pd-title { font-size: 32px; font-weight: 800; color: var(--dark); line-height: 1.2; margin-bottom: 14px; }
+        .pd-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .pd-rating .stars { color: #f59e0b; font-size: 16px; }
+        .pd-rating .count { font-size: 13px; color: var(--gray-2); }
+        .pd-price-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .pd-price-current { font-size: 36px; font-weight: 900; color: var(--primary); font-family: var(--font-heading); }
+        .pd-price-old { font-size: 20px; color: var(--gray-3); text-decoration: line-through; }
+        .pd-save { background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 50px; }
+        .pd-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+        .pd-label { font-size: 13px; font-weight: 700; color: var(--dark); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: block; }
+        .size-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .size-btn { padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; transition: var(--transition); background: var(--bg); color: var(--dark); }
+        .size-btn:hover, .size-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+        .qty-row { display: flex; align-items: center; gap: 0; border: 1.5px solid var(--border); border-radius: 50px; width: fit-content; overflow: hidden; }
+        .qty-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; color: var(--dark); transition: var(--transition); }
+        .qty-btn:hover { background: var(--bg-light); color: var(--primary); }
+        .qty-num { width: 48px; text-align: center; font-size: 16px; font-weight: 700; color: var(--dark); border: none; border-left: 1.5px solid var(--border); border-right: 1.5px solid var(--border); padding: 8px 0; outline: none; background: transparent; font-family: var(--font-heading); }
+        .pd-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+        .pd-actions .add-to-cart-btn { flex: 1; min-width: 200px; text-align: center; padding: 16px; border-radius: 50px; background: var(--dark); color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: var(--transition); border: none; }
+        .pd-actions .add-to-cart-btn:hover { background: var(--primary); }
+        .pd-actions .wishlist-static { width: 52px; height: 52px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray-2); transition: var(--transition); }
+        .pd-actions .wishlist-static:hover { border-color: #ef4444; color: #ef4444; }
+        .pd-feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+        .pd-feature { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--gray); }
+        .pd-feature svg { color: var(--primary); flex-shrink: 0; }
+        .related-title { font-size: 28px; font-weight: 800; color: var(--dark); margin-bottom: 32px; }
+    </style>
+</head>
+<body>
+<div class="promo-bar">
+    🚚 Free shipping on orders over $79 &nbsp;|&nbsp; Use code <span>VELO15</span> for 15% off
+</div>
+<header class="header" id="mainHeader">
+    <div class="container header-inner">
+        <a href="index.html" class="logo">
+            <img src="assets/goarcana-logo.svg" alt="Goarcana logo">
+            <span class="brand-wordmark">Goa<span>rcana</span></span>
+        </a>
+        <nav class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="shop.html" class="nav-link active">Shop</a>
+            <a href="blog.html" class="nav-link">Journal</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+        </nav>
+        <div class="nav-actions">
+            <a href="shop.html" class="nav-icon-btn" aria-label="Cart" style="position:relative;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <span class="cart-count">0</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        </div>
+    </div>
+</header>
+
+<section class="section-padding" style="padding-top: 40px;">
+    <div class="container">
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--gray-2); margin-bottom:40px;">
+            <a href="index.html" style="color:inherit;">Home</a> / <a href="shop.html" style="color:inherit;">Shop</a> / <span>Faded Indigo Denim Jacket</span>
+        </div>
+
+        <div class="pd-layout">
+            <!-- Image Gallery -->
+            <div class="pd-gallery">
+                <div class="pd-thumbs">
+                    <div class="pd-thumb active"><!-- AI Prompt: Stylish denim jacket product photo, front view --><img src="assets/product_denim_jacket.png" alt="Front"></div>
+                    <div class="pd-thumb"><!-- AI Prompt: White linen blazer product thumbnail photo --><img src="assets/product_white_jacket.png" alt="Alt view 1"></div>
+                    <div class="pd-thumb"><!-- AI Prompt: Black off-shoulder blouse product thumbnail --><img src="assets/product_offshoulder_black.png" alt="Alt view 2"></div>
+                    <div class="pd-thumb"><!-- AI Prompt: Pattern shirt product thumbnail editorial --><img src="assets/product_pattern_shirt.png" alt="Alt view 3"></div>
+                </div>
+                <div class="pd-main-img">
+                    <!-- AI Prompt: Stylish denim jacket with distressed details, female fashion model wearing it, studio editorial photography, warm clean lighting -->
+                    <img src="assets/product_denim_jacket.png" alt="Faded Indigo Denim Jacket Main">
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div>
+                <span class="pd-tag"><span class="badge badge-hot">Hot</span> Bestseller</span>
+                <h1 class="pd-title">Faded Indigo Denim Jacket</h1>
+                <div class="pd-rating">
+                    <span class="stars">★★★★★</span>
+                    <span class="count">4.9 (128 reviews)</span>
+                </div>
+                <div class="pd-price-row">
+                    <span class="pd-price-current">$89.00</span>
+                    <span class="pd-price-old">$119.00</span>
+                    <span class="pd-save">Save $30</span>
+                </div>
+                <p style="font-size:15px; color:var(--gray); line-height:1.7; margin-bottom:20px;">
+                    Washed to perfection, this relaxed-fit denim jacket channels vintage cool with a modern edge. Crafted from heavyweight 100% cotton denim, featuring reinforced seams and a custom brass-button placket.
+                </p>
+                <hr class="pd-divider">
+                <span class="pd-label">Select Size</span>
+                <div class="size-group">
+                    <button class="size-btn">XS</button>
+                    <button class="size-btn active">S</button>
+                    <button class="size-btn">M</button>
+                    <button class="size-btn">L</button>
+                    <button class="size-btn">XL</button>
+                </div>
+                <hr class="pd-divider">
+                <span class="pd-label">Quantity</span>
+                <div class="qty-row">
+                    <button class="qty-btn" onclick="let n=document.getElementById('qtyNum'); if(parseInt(n.value)>1) n.value=parseInt(n.value)-1;">−</button>
+                    <input type="number" id="qtyNum" class="qty-num" value="1" min="1" max="99">
+                    <button class="qty-btn" onclick="let n=document.getElementById('qtyNum'); n.value=parseInt(n.value)+1;">+</button>
+                </div>
+                <div class="pd-actions">
+                    <button class="add-to-cart-btn">Add to Cart</button>
+                    <button class="wishlist-static" aria-label="Wishlist">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                </div>
+                <div class="pd-feature-grid">
+                    <div class="pd-feature"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> Free shipping on orders $79+</div>
+                    <div class="pd-feature"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> 30-day easy returns</div>
+                    <div class="pd-feature"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Verified quality guarantee</div>
+                    <div class="pd-feature"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><path d="m16 8 2 0 4 4v3h-6V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Ships in 2–4 business days</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div style="margin-top: 80px;">
+            <h2 class="related-title">You Might Also Like</h2>
+            <div class="product-grid">
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Relaxed linen blazer clean studio photo --><img src="assets/product_white_jacket.png" alt="Linen Blazer"><span class="product-badge badge badge-new">New</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Relaxed Linen Blazer</h4></a><div class="product-price"><span class="price-current">$74.00</span></div><div class="product-stars">★★★★☆ <span>(84)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Off shoulder black blouse editorial fashion --><img src="assets/product_offshoulder_black.png" alt="Off Shoulder"><span class="product-badge badge badge-sale">−25%</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Sculpted Off-Shoulder Top</h4></a><div class="product-price"><span class="price-current">$52.00</span><span class="price-old">$69.00</span></div><div class="product-stars">★★★★★ <span>(210)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Oversized hoodie comfortable casual wear --><img src="assets/product_hoodie.png" alt="Hoodie"></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Oversized Knit Hoodie</h4></a><div class="product-price"><span class="price-current">$58.00</span></div><div class="product-stars">★★★★★ <span>(94)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Graphic printed shirt urban pattern fashion editorial --><img src="assets/product_pattern_shirt.png" alt="Pattern Shirt"></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Graphic Interplay Shirt</h4></a><div class="product-price"><span class="price-current">$48.00</span></div><div class="product-stars">★★★★☆ <span>(67)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container footer-top">
+        <div><div class="footer-brand-logo"><img src="assets/goarcana-logo.svg" alt="Goarcana logo"><span class="brand-wordmark">Goa<span>rcana</span></span></div><p class="footer-about">Fashion that moves with you since 2018.</p><div class="footer-socials"><a href="#" aria-label="Instagram">Ig</a><a href="#" aria-label="TikTok">Tk</a><a href="#" aria-label="Pinterest">Pt</a></div></div>
+        <div class="footer-col"><h4>Quick Links</h4><ul class="footer-links"><li><a href="index.html">Home</a></li><li><a href="shop.html">Shop</a></li><li><a href="blog.html">Journal</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+        <div class="footer-col"><h4>Categories</h4><ul class="footer-links"><li><a href="shop.html">Tops &amp; Tees</a></li><li><a href="shop.html">Outerwear</a></li><li><a href="shop.html">Footwear</a></li><li><a href="shop.html">Accessories</a></li></ul></div>
+        <div class="footer-col footer-newsletter"><h4>Newsletter</h4><p>Get exclusive drops in your inbox.</p><form class="newsletter-form" onsubmit="event.preventDefault();"><input type="email" placeholder="Your email"><button type="submit">Join</button></form></div>
+    </div>
+    <div class="footer-bottom"><div class="container"><span>© 2026 Goarcana. All rights reserved.</span><div class="footer-bottom-links"><a href="contact.html">Privacy</a><a href="contact.html">Terms</a></div></div></div>
+</footer>
+<script src="main.js"></script>
+</body>
+</html>

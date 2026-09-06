@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Goarcana Shop – Browse our full range of premium streetwear, outerwear, accessories and more.">
+    <title>Shop | Goarcana</title>
+    <link rel="icon" type="image/svg+xml" href="assets/goarcana-logo.svg">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .shop-hero { background: var(--bg-light); padding: 60px 0 40px; text-align: center; }
+        .breadcrumb { display: flex; justify-content: center; gap: 8px; font-size: 13px; color: var(--gray-2); margin-bottom: 16px; }
+        .breadcrumb a:hover { color: var(--primary); }
+        .shop-layout { display: grid; grid-template-columns: 260px 1fr; gap: 40px; align-items: start; }
+        .sidebar { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 28px; position: sticky; top: 90px; }
+        .sidebar h3 { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-group { margin-bottom: 28px; }
+        .filter-label { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 14px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-options { display: flex; flex-direction: column; gap: 10px; }
+        .filter-options label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--gray); cursor: pointer; }
+        .filter-options label:hover { color: var(--primary); }
+        .filter-options input[type=checkbox] { accent-color: var(--primary); width: 15px; height: 15px; }
+        .price-range { display: flex; gap: 10px; align-items: center; }
+        .price-range input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font-body); }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+        .product-count { font-size: 14px; color: var(--gray-2); }
+        .sort-select { padding: 9px 16px; border: 1px solid var(--border); border-radius: 50px; font-size: 13px; font-family: var(--font-body); color: var(--dark); cursor: pointer; outline: none; }
+        .sort-select:focus { border-color: var(--primary); }
+        .shop-product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 48px; }
+        .page-btn { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border: 1px solid var(--border); color: var(--gray); cursor: pointer; transition: var(--transition); }
+        .page-btn:hover, .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-filter-apply { width: 100%; padding: 12px; background: var(--primary); color: #fff; border-radius: 50px; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px; }
+        .btn-filter-apply:hover { background: var(--primary-dark); }
+
+        @media (max-width: 900px) {
+            .shop-layout { grid-template-columns: 1fr; }
+            .sidebar { position: static; }
+        }
+
+        @media (max-width: 640px) {
+            .shop-product-grid { grid-template-columns: 1fr 1fr; }
+            .toolbar { align-items: flex-start; }
+        }
+
+        @media (max-width: 480px) {
+            .shop-product-grid { grid-template-columns: 1fr; }
+            .shop-hero { padding-top: 40px; }
+            .shop-hero h1 { font-size: 32px; }
+            .sidebar { padding: 20px; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .sort-select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="promo-bar">
+    🚚 Free shipping on orders over $79 &nbsp;|&nbsp; <span>NEW ARRIVALS</span> every Friday &nbsp;|&nbsp; Use code <span>VELO15</span> for 15% off
+</div>
+<header class="header" id="mainHeader">
+    <div class="container header-inner">
+        <a href="index.html" class="logo">
+            <img src="assets/goarcana-logo.svg" alt="Goarcana logo">
+            <span class="brand-wordmark">Goa<span>rcana</span></span>
+        </a>
+        <nav class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="shop.html" class="nav-link active">Shop</a>
+            <a href="blog.html" class="nav-link">Journal</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+        </nav>
+        <div class="nav-actions">
+            <a href="shop.html" class="nav-icon-btn" aria-label="Cart" style="position:relative;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                <span class="cart-count">0</span>
+            </a>
+            <button class="mobile-menu-btn" aria-label="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        </div>
+    </div>
+</header>
+
+<section class="shop-hero">
+    <div class="container">
+        <div class="breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Shop</span></div>
+        <h1 style="font-size:40px; margin-bottom:10px;">All Products</h1>
+        <p style="color:var(--gray-2); font-size:15px;">Explore the full Goarcana collection</p>
+    </div>
+</section>
+
+<section class="section-padding" style="padding-top:40px;">
+    <div class="container shop-layout">
+        <!-- Sidebar Filters -->
+        <aside class="sidebar">
+            <h3>Filter By</h3>
+            <div class="filter-group">
+                <span class="filter-label">Category</span>
+                <div class="filter-options">
+                    <label><input type="checkbox" checked> All Items</label>
+                    <label><input type="checkbox"> Tops &amp; Tees</label>
+                    <label><input type="checkbox"> Outerwear</label>
+                    <label><input type="checkbox"> Hoodies</label>
+                    <label><input type="checkbox"> Footwear</label>
+                    <label><input type="checkbox"> Accessories</label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Price Range</span>
+                <div class="price-range">
+                    <input type="number" placeholder="$0" min="0">
+                    <span>—</span>
+                    <input type="number" placeholder="$200" max="200">
+                </div>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Size</span>
+                <div class="filter-options">
+                    <label><input type="checkbox"> XS</label>
+                    <label><input type="checkbox" checked> S</label>
+                    <label><input type="checkbox" checked> M</label>
+                    <label><input type="checkbox"> L</label>
+                    <label><input type="checkbox"> XL</label>
+                </div>
+            </div>
+            <button class="btn-filter-apply">Apply Filters</button>
+        </aside>
+
+        <!-- Product Grid -->
+        <div>
+            <div class="toolbar">
+                <span class="product-count">Showing 12 of 48 products</span>
+                <select class="sort-select" aria-label="Sort products">
+                    <option>Sort: Newest First</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Best Rated</option>
+                    <option>Best Selling</option>
+                </select>
+            </div>
+            <div class="shop-product-grid">
+                <!-- 12 products -->
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Stylish denim jacket with distressed details, female fashion model --><img src="assets/product_denim_jacket.png" alt="Denim Jacket"><span class="product-badge badge badge-hot">Hot</span><button class="wishlist-btn" aria-label="Wishlist"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Faded Indigo Denim Jacket</h4></a><div class="product-price"><span class="price-current">$89.00</span><span class="price-old">$119.00</span></div><div class="product-stars">★★★★★ <span>(128)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Classic white linen blazer, clean studio photo --><img src="assets/product_white_jacket.png" alt="White Jacket"><span class="product-badge badge badge-new">New</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Relaxed Linen Blazer</h4></a><div class="product-price"><span class="price-current">$74.00</span></div><div class="product-stars">★★★★☆ <span>(84)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Bold off-shoulder black blouse, elegant fashion photo --><img src="assets/product_offshoulder_black.png" alt="Off Shoulder"><span class="product-badge badge badge-sale">−25%</span><button class="wishlist-btn" aria-label="Wishlist"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Sculpted Off-Shoulder Top</h4></a><div class="product-price"><span class="price-current">$52.00</span><span class="price-old">$69.00</span></div><div class="product-stars">★★★★★ <span>(210)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Graphic printed shirt, bold urban pattern, fashion editorial --><img src="assets/product_pattern_shirt.png" alt="Pattern Shirt"></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Graphic Interplay Shirt</h4></a><div class="product-price"><span class="price-current">$48.00</span></div><div class="product-stars">★★★★☆ <span>(67)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Minimalist white graphic tshirt, product photo --><img src="assets/product_tshirt.png" alt="T-Shirt"><span class="product-badge badge badge-sale">−20%</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Urban Canvas Tee</h4></a><div class="product-price"><span class="price-current">$32.00</span><span class="price-old">$40.00</span></div><div class="product-stars">★★★★★ <span>(89)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Stylish crop top with floral pattern, editorial fashion photo --><img src="assets/product_croptop.png" alt="Crop Top"><span class="product-badge badge badge-new">New</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Bloom Cropped Tee</h4></a><div class="product-price"><span class="price-current">$38.00</span></div><div class="product-stars">★★★★★ <span>(43)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Cozy oversized hoodie neutral colour, female model wearing it casually --><img src="assets/product_hoodie.png" alt="Hoodie"></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Oversized Knit Hoodie</h4></a><div class="product-price"><span class="price-current">$58.00</span></div><div class="product-stars">★★★★★ <span>(94)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Trendy runner sneakers, bold color, product studio photo --><img src="assets/product_shoes.png" alt="Shoes"><span class="product-badge badge badge-new">New</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Velotrek Runner Shoes</h4></a><div class="product-price"><span class="price-current">$112.00</span><span class="price-old">$140.00</span></div><div class="product-stars">★★★★☆ <span>(57)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Minimalist crossbody bag fashion accessory product photo --><img src="assets/product_bag.png" alt="Bag"><span class="product-badge badge badge-hot">Hot</span><button class="wishlist-btn" aria-label="Wishlist"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Crossbody Studio Bag</h4></a><div class="product-price"><span class="price-current">$79.00</span></div><div class="product-stars">★★★★★ <span>(162)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Stylish fashionable woman casual street look, editorial photo --><img src="assets/trend_girl_1.png" alt="Trend Look"></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Layer Up Autumn Set</h4></a><div class="product-price"><span class="price-current">$98.00</span><span class="price-old">$125.00</span></div><div class="product-stars">★★★★☆ <span>(29)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Trendy woman in casual chic look, fashion editorial outdoor --><img src="assets/trend_girl_2.png" alt="Casual Look"><span class="product-badge badge badge-sale">−15%</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Weekend Street Combo</h4></a><div class="product-price"><span class="price-current">$67.00</span><span class="price-old">$79.00</span></div><div class="product-stars">★★★★★ <span>(51)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+                <div class="product-card"><div class="product-img-wrap"><!-- AI Prompt: Elegant promo fashion, woman in bold power outfit colourful --><img src="assets/promo_fashion.png" alt="Power Blazer"><span class="product-badge badge badge-sale">−30%</span></div><div class="product-info"><a href="product-detail.html"><h4 class="product-name">Power Blazer Set</h4></a><div class="product-price"><span class="price-current">$95.00</span><span class="price-old">$136.00</span></div><div class="product-stars">★★★★★ <span>(38)</span></div></div><button class="product-quick-add">+ Add to Cart</button></div>
+            </div>
+            <div class="pagination">
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">4</button>
+                <button class="page-btn">›</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container footer-top">
+        <div><div class="footer-brand-logo"><img src="assets/goarcana-logo.svg" alt="Goarcana logo"><span class="brand-wordmark">Goa<span>rcana</span></span></div><p class="footer-about">Fashion that moves with you. Premium streetwear and curated drops since 2018.</p><div class="footer-socials"><a href="#" aria-label="Instagram">Ig</a><a href="#" aria-label="TikTok">Tk</a><a href="#" aria-label="Pinterest">Pt</a></div></div>
+        <div class="footer-col"><h4>Quick Links</h4><ul class="footer-links"><li><a href="index.html">Home</a></li><li><a href="shop.html">Shop</a></li><li><a href="blog.html">Journal</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+        <div class="footer-col"><h4>Categories</h4><ul class="footer-links"><li><a href="shop.html">Tops &amp; Tees</a></li><li><a href="shop.html">Outerwear</a></li><li><a href="shop.html">Footwear</a></li><li><a href="shop.html">Accessories</a></li></ul></div>
+        <div class="footer-col footer-newsletter"><h4>Newsletter</h4><p>Get exclusive drops and style tips in your inbox.</p><form class="newsletter-form" onsubmit="event.preventDefault();"><input type="email" placeholder="Your email"><button type="submit">Join</button></form></div>
+    </div>
+    <div class="footer-bottom"><div class="container"><span>© 2026 Goarcana. All rights reserved.</span><div class="footer-bottom-links"><a href="contact.html">Privacy</a><a href="contact.html">Terms</a></div></div></div>
+</footer>
+<script src="main.js"></script>
+</body>
+</html>
