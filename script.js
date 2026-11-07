@@ -1,5 +1,5 @@
 const PRODUCTS = [
-  { id: 1, name: "Dried mangoes", desc: "Sweet, chewy, 200g pack", price: 180, cat: "Snacks", img: "images/mango.svg" },
+  { id: 1, name: "Dried mangoes", desc: "Sweet, chewy, 200g pack", price: 180, cat: "Snacks", img: "images/01.jpg" },
   { id: 2, name: "Otap biscuits", desc: "Flaky puff pastry, box of 10", price: 120, cat: "Snacks", img: "images/02.jpg" },
   { id: 3, name: "Rosquillos", desc: "Crisp butter cookies, 250g", price: 150, cat: "Snacks", img: "images/03.jpg" },
   { id: 4, name: "Sinamay tote bag", desc: "Handwoven, fits a laptop", price: 450, cat: "Crafts", img: "images/04.jpg" },
