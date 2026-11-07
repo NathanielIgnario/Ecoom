@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450"><defs><pattern id="w" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M0 11h22M11 0v22" stroke="#a9763a" stroke-width="4"/></pattern></defs>
+<rect width="600" height="450" fill="#d8e8d3"/><circle cx="110" cy="90" r="130" fill="#c4dcbd"/><ellipse cx="300" cy="412" rx="170" ry="18" fill="#000" opacity=".1"/>
+<path d="M220 170c0-90 160-90 160 0" stroke="#8a5d2b" stroke-width="16" fill="none" stroke-linecap="round"/>
+<path d="M165 170h270l28 230H137z" fill="#d1a266"/><path d="M165 170h270l28 230H137z" fill="url(#w)"/><path d="M165 170h270l6 50H159z" fill="#8a5d2b" opacity=".35"/>
+<rect x="255" y="250" width="90" height="56" rx="10" fill="#0e6b73"/><text x="300" y="288" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="26" fill="#ffb81c">CEBU</text></svg>
