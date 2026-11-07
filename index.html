@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasalubong Corner · Cebu goods</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span>Pasalubong Corner</a>
+  <button id="cartBtn" class="cart-btn" aria-label="Open cart">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
+    <span id="count">0</span>
+  </button>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="hero-text">
+      <span class="pill">Made in Cebu</span>
+      <h1>Bring home a taste of Cebu.</h1>
+      <p>Search what you like, add it to your cart, and check out with your email. Your order receipt arrives in your inbox.</p>
+      <a class="cta" href="#shop">Shop now</a>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <img class="a" src="images/01.jpg" alt="">
+      <img class="b" src="images/04.jpg" alt="">
+      <img class="c" src="images/05.jpg" alt="">
+    </div>
+  </section>
+
+  <section id="shop" class="shop">
+    <div class="tools">
+      <div class="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <label for="search" class="sr">Search products</label>
+        <input id="search" type="search" placeholder="Search mango, tote, shirt…" autocomplete="off">
+      </div>
+      <div id="chips" class="chips" role="group" aria-label="Categories"></div>
+    </div>
+    <div id="products" class="grid" aria-live="polite"></div>
+  </section>
+</main>
+
+<footer class="foot">Pasalubong Corner · Cebu City, Philippines</footer>
+
+<div id="toast" class="toast" role="status"></div>
+<div id="overlay" class="overlay"></div>
+<aside id="drawer" class="drawer" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>Your cart</h2>
+    <button id="closeCart" aria-label="Close cart">✕</button>
+  </div>
+  <div id="items" class="items"></div>
+  <div class="total"><span>Total</span><strong id="total">₱0</strong></div>
+
+  <form id="checkoutForm" novalidate>
+    <label>Full name<input name="name" required autocomplete="name"></label>
+    <label>Email (your receipt goes here)<input name="email" type="email" required autocomplete="email"></label>
+    <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
+    <label>Delivery address<textarea name="address" rows="2" required autocomplete="street-address"></textarea></label>
+    <button id="placeBtn" class="primary" type="submit">Place order</button>
+    <p id="msg" role="status"></p>
+  </form>
+</aside>
+
+<script src="script.js"></script>
+</body>
+</html>
