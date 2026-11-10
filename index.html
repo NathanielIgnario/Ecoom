@@ -5,116 +5,124 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pasalubong Corner · Cebu goods</title>
 <meta name="description" content="Dried mangoes, otap, rosquillos and handmade crafts from Cebu. Order online and get your receipt by email.">
-<meta name="theme-color" content="#0e6b73">
+<meta name="theme-color" content="#ffffff">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a class="skip" href="#shop">Skip to products</a>
 
-<div class="announce">Handpicked pasalubong from Cebu · Email receipt on every order</div>
+<div class="announce">Free email receipt on every order · Handpicked from Cebu</div>
 
 <header class="bar">
   <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span>Pasalubong Corner</a>
   <nav class="nav" aria-label="Main">
     <a href="#shop">Shop</a>
-    <a href="#why">Why us</a>
-    <a href="#contact">Contact</a>
+    <a href="#categories">Categories</a>
+    <a href="#about">About</a>
   </nav>
-  <button id="cartBtn" class="cart-btn" aria-label="Open cart">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
-    <span class="cart-label">Cart</span>
-    <span id="count">0</span>
-  </button>
+  <div class="actions">
+    <button id="acctBtn" class="acct-btn" type="button" aria-label="Log in or create account">
+      <span class="avatar" id="acctAvatar" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+      </span>
+      <span class="acct-label" id="acctLabel">Log in</span>
+    </button>
+    <button id="cartBtn" class="cart-btn" aria-label="Open cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <span class="cart-label">Cart</span>
+      <span id="count">0</span>
+    </button>
+  </div>
 </header>
 
 <main id="top">
   <section class="hero">
     <div class="hero-text">
-      <span class="pill"><span class="dot" aria-hidden="true"></span>Made in Cebu</span>
-      <h1>Bring home a <em>taste</em> of Cebu.</h1>
-      <p>Dried mangoes, flaky otap, and handmade crafts from local makers. Add what you like to your cart, check out with your email, and your receipt lands in your inbox.</p>
+      <span class="eyebrow">Made in Cebu</span>
+      <h1>Taste of Cebu,<br>delivered to you.</h1>
+      <p>Dried mangoes, flaky otap and handmade crafts from local makers. Create an account, fill your cart and get your receipt by email.</p>
       <div class="hero-cta">
-        <a class="cta" href="#shop">Shop now
+        <a class="btn dark" href="#shop">Shop the collection
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
-        <a class="cta ghost" href="#why">Why shop with us</a>
+        <button class="btn light" type="button" id="heroSignup">Create account</button>
       </div>
-      <ul class="trust">
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Local makers</li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Email receipt</li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Delivery arranged with you</li>
+      <ul class="stats">
+        <li><strong>6</strong><span>Cebu favorites</span></li>
+        <li><strong>100%</strong><span>Local makers</span></li>
+        <li><strong>Email</strong><span>Receipt included</span></li>
       </ul>
     </div>
-    <div class="hero-art" aria-hidden="true">
-      <div class="blob"></div>
-      <figure class="tile a"><img src="images/01.jpg" alt=""></figure>
-      <figure class="tile b"><img src="images/04.jpg" alt=""></figure>
-      <figure class="tile c"><img src="images/05.jpg" alt=""></figure>
-      <div class="sticker">Bestseller<br><strong>Dried mangoes</strong></div>
+    <div class="bento" aria-hidden="true">
+      <figure class="b1"><img src="images/01.jpg" alt=""><figcaption>Dried mangoes<small>₱180</small></figcaption></figure>
+      <figure class="b2"><img src="images/04.jpg" alt=""></figure>
+      <figure class="b3"><img src="images/05.jpg" alt=""></figure>
     </div>
   </section>
 
-  <section id="shop" class="shop">
+  <section id="categories" class="section">
     <div class="section-head">
-      <div>
-        <span class="eyebrow">The shop</span>
-        <h2>Pasalubong favorites</h2>
-      </div>
+      <h2>Shop by category</h2>
+    </div>
+    <div id="cats" class="cats"></div>
+  </section>
+
+  <section id="shop" class="section">
+    <div class="section-head">
+      <h2>All products</h2>
       <p id="resultCount" class="result-count" aria-live="polite"></p>
     </div>
 
     <div class="tools">
-      <div class="search">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
-        <label for="search" class="sr">Search products</label>
-        <input id="search" type="search" placeholder="Search mango, tote, shirt…" autocomplete="off">
-      </div>
       <div id="chips" class="chips" role="group" aria-label="Categories"></div>
-      <label class="sort">
-        <span class="sr">Sort products</span>
-        <select id="sort">
-          <option value="featured">Featured</option>
-          <option value="low">Price: low to high</option>
-          <option value="high">Price: high to low</option>
-          <option value="az">Name: A to Z</option>
-        </select>
-      </label>
+      <div class="tools-right">
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <label for="search" class="sr">Search products</label>
+          <input id="search" type="search" placeholder="Search products" autocomplete="off">
+        </div>
+        <label class="sort">
+          <span class="sr">Sort products</span>
+          <select id="sort">
+            <option value="featured">Featured</option>
+            <option value="low">Price: low to high</option>
+            <option value="high">Price: high to low</option>
+            <option value="az">Name: A to Z</option>
+          </select>
+        </label>
+      </div>
     </div>
     <div id="products" class="grid" aria-live="polite"></div>
   </section>
 
-  <section id="why" class="why">
-    <div class="section-head center">
-      <span class="eyebrow">Why Pasalubong Corner</span>
-      <h2>Small shop, honest goods</h2>
-    </div>
-    <div class="features">
-      <article class="feature">
+  <section id="about" class="section">
+    <div class="perks">
+      <article>
         <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.5-7-11a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 6.5-7 11-7 11z"/></svg></span>
         <h3>Sourced from Cebu</h3>
         <p>Snacks and crafts from local bakers and makers around Cebu and Mactan.</p>
       </article>
-      <article class="feature">
+      <article>
         <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></span>
         <h3>Receipt in your inbox</h3>
         <p>Check out with your email and get an order summary right away.</p>
       </article>
-      <article class="feature">
-        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg></span>
-        <h3>Delivery made easy</h3>
-        <p>We contact you after your order to confirm the details and arrange delivery.</p>
+      <article>
+        <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>
+        <h3>Your own account</h3>
+        <p>Save your delivery details and see your past orders on this device.</p>
       </article>
     </div>
   </section>
 </main>
 
-<footer id="contact" class="foot">
+<footer class="foot">
   <div class="foot-grid">
     <div>
-      <a class="brand light" href="#top"><span class="mark" aria-hidden="true"></span>Pasalubong Corner</a>
+      <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span>Pasalubong Corner</a>
       <p>Cebu’s favorite treats and handmade goods, packed with care and sent your way.</p>
     </div>
     <div>
@@ -141,13 +149,15 @@
 
 <div id="toast" class="toast" role="status"></div>
 <div id="overlay" class="overlay"></div>
+
+<!-- Cart drawer -->
 <aside id="drawer" class="drawer" aria-hidden="true" aria-labelledby="cartTitle" role="dialog">
   <div class="drawer-head">
     <div>
       <h2 id="cartTitle">Your cart</h2>
       <p id="cartSub" class="cart-sub">0 items</p>
     </div>
-    <button id="closeCart" aria-label="Close cart">
+    <button id="closeCart" class="icon-btn" aria-label="Close cart">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
@@ -158,28 +168,29 @@
     <div id="checkoutWrap" class="checkout">
       <div class="total"><span>Total</span><strong id="total">₱0</strong></div>
       <p class="note">Delivery fee, if any, is confirmed when we contact you.</p>
+      <p id="guestNudge" class="nudge">Have an account? <button type="button" class="linkish" data-open-auth="login">Log in</button> or <button type="button" class="linkish" data-open-auth="signup">create one</button> to fill in your details automatically.</p>
 
       <form id="checkoutForm" novalidate>
         <h3 class="form-title">Delivery details</h3>
         <div class="field">
           <label for="f-name">Full name</label>
-          <input id="f-name" name="name" required autocomplete="name" placeholder="Juan Dela Cruz" aria-describedby="e-name">
-          <p class="field-err" id="e-name"></p>
+          <input id="f-name" name="name" required autocomplete="name" placeholder="Juan Dela Cruz">
+          <p class="field-err" data-err="name"></p>
         </div>
         <div class="field">
           <label for="f-email">Email <span class="hint">(your receipt goes here)</span></label>
-          <input id="f-email" name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@email.com" aria-describedby="e-email">
-          <p class="field-err" id="e-email"></p>
+          <input id="f-email" name="email" type="email" required autocomplete="email" inputmode="email" placeholder="you@email.com">
+          <p class="field-err" data-err="email"></p>
         </div>
         <div class="field">
           <label for="f-phone">Phone</label>
-          <input id="f-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="09XX XXX XXXX" aria-describedby="e-phone">
-          <p class="field-err" id="e-phone"></p>
+          <input id="f-phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" placeholder="09XX XXX XXXX">
+          <p class="field-err" data-err="phone"></p>
         </div>
         <div class="field">
           <label for="f-address">Delivery address</label>
-          <textarea id="f-address" name="address" rows="2" required autocomplete="street-address" placeholder="House no., street, barangay, city" aria-describedby="e-address"></textarea>
-          <p class="field-err" id="e-address"></p>
+          <textarea id="f-address" name="address" rows="2" required autocomplete="street-address" placeholder="House no., street, barangay, city"></textarea>
+          <p class="field-err" data-err="address"></p>
         </div>
         <button id="placeBtn" class="primary" type="submit">Place order</button>
         <p id="msg" role="status"></p>
@@ -187,6 +198,106 @@
     </div>
   </div>
 </aside>
+
+<!-- Log in / Sign up -->
+<dialog id="authDlg" class="dlg" aria-labelledby="authTitle">
+  <button class="icon-btn dlg-x" data-close aria-label="Close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <span class="mark big" aria-hidden="true"></span>
+  <h2 id="authTitle">Welcome back</h2>
+  <p id="authSub" class="dlg-sub">Log in to see your orders and check out faster.</p>
+
+  <div class="tabs" role="tablist" aria-label="Account">
+    <button type="button" role="tab" id="tabLogin" aria-selected="true" aria-controls="loginForm">Log in</button>
+    <button type="button" role="tab" id="tabSignup" aria-selected="false" aria-controls="signupForm">Create account</button>
+  </div>
+
+  <form id="loginForm" novalidate role="tabpanel" aria-labelledby="tabLogin">
+    <div class="field">
+      <label for="l-email">Email</label>
+      <input id="l-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com">
+      <p class="field-err" data-err="email"></p>
+    </div>
+    <div class="field">
+      <label for="l-pw">Password</label>
+      <div class="pw">
+        <input id="l-pw" name="password" type="password" autocomplete="current-password" placeholder="Your password">
+        <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <p class="field-err" data-err="password"></p>
+    </div>
+    <button class="primary" type="submit">Log in</button>
+    <p class="form-msg" role="status" data-msg></p>
+  </form>
+
+  <form id="signupForm" novalidate hidden role="tabpanel" aria-labelledby="tabSignup">
+    <div class="field">
+      <label for="s-name">Full name</label>
+      <input id="s-name" name="name" autocomplete="name" placeholder="Juan Dela Cruz">
+      <p class="field-err" data-err="name"></p>
+    </div>
+    <div class="field">
+      <label for="s-email">Email</label>
+      <input id="s-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com">
+      <p class="field-err" data-err="email"></p>
+    </div>
+    <div class="field">
+      <label for="s-pw">Password <span class="hint">(at least 8 characters)</span></label>
+      <div class="pw">
+        <input id="s-pw" name="password" type="password" autocomplete="new-password" placeholder="Create a password">
+        <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false">Show</button>
+      </div>
+      <p class="field-err" data-err="password"></p>
+    </div>
+    <button class="primary" type="submit">Create account</button>
+    <p class="form-msg" role="status" data-msg></p>
+  </form>
+</dialog>
+
+<!-- My account -->
+<dialog id="acctDlg" class="dlg wide" aria-labelledby="acctTitle">
+  <button class="icon-btn dlg-x" data-close aria-label="Close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="acct-head">
+    <span class="avatar lg" id="acctAvatarLg" aria-hidden="true"></span>
+    <div>
+      <h2 id="acctTitle">My account</h2>
+      <p class="dlg-sub" id="acctEmail"></p>
+    </div>
+  </div>
+
+  <div class="acct-grid">
+    <form id="profileForm" novalidate>
+      <h3 class="form-title">Saved details</h3>
+      <div class="field">
+        <label for="p-name">Full name</label>
+        <input id="p-name" name="name" autocomplete="name">
+        <p class="field-err" data-err="name"></p>
+      </div>
+      <div class="field">
+        <label for="p-phone">Phone</label>
+        <input id="p-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="09XX XXX XXXX">
+        <p class="field-err" data-err="phone"></p>
+      </div>
+      <div class="field">
+        <label for="p-address">Delivery address</label>
+        <textarea id="p-address" name="address" rows="3" autocomplete="street-address" placeholder="House no., street, barangay, city"></textarea>
+        <p class="field-err" data-err="address"></p>
+      </div>
+      <button class="primary" type="submit">Save details</button>
+      <p class="form-msg" role="status" data-msg></p>
+    </form>
+
+    <section class="orders-box" aria-labelledby="ordersTitle">
+      <h3 class="form-title" id="ordersTitle">Order history</h3>
+      <div id="orders" class="orders"></div>
+    </section>
+  </div>
+
+  <button type="button" class="logout" id="logoutBtn">Log out</button>
+</dialog>
 
 <script src="script.js"></script>
 </body>
