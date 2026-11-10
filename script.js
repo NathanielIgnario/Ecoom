@@ -19,7 +19,7 @@ const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 let cart = read("cart", {}), query = "", cat = "All", sort = "featured";
 const save = () => write("cart", cart);
 
-const ICON_PLUS = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`;
+const ICON_PLUS = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`;
 const ICON_BAG = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>`;
 const ICON_ARROW = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
 
@@ -33,9 +33,9 @@ function toast(text) {
 function renderCats() {
   $("#cats").innerHTML = CATS.slice(1).map((c) => {
     const n = PRODUCTS.filter((p) => p.cat === c).length;
-    return `<button class="cat ${c.toLowerCase()}" data-cat="${c}">
+    return `<button class="cat ${c.toLowerCase()}" data-cat="${c}" aria-label="Shop ${c}, ${n} ${n === 1 ? "item" : "items"}">
       <img src="${CAT_IMG[c]}" alt="" loading="lazy">
-      <span>${c}<small>${n} ${n === 1 ? "item" : "items"}</small></span>
+      <div class="cat-bar"><b>${c}</b><small>${n} ${n === 1 ? "item" : "items"} →</small></div>
     </button>`;
   }).join("");
 }
@@ -74,7 +74,7 @@ function renderProducts() {
     return;
   }
   $("#products").innerHTML = list.map((p, i) => `
-    <article class="card" data-id="${p.id}" style="--i:${i}">
+    <article class="card ${p.cat.toLowerCase()}" data-id="${p.id}" style="--i:${i}">
       <div class="pic">
         <img class="${p.cover ? "cover" : ""}" src="${p.img}" alt="${esc(p.name)}" loading="lazy">
         ${p.badge ? `<span class="badge">${p.badge}</span>` : ""}
