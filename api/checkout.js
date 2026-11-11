@@ -2,64 +2,44 @@
 // Sends one email to the customer and one to the shop (Outlook / domain email).
 
 const PRODUCTS = {
-  1: { name: "Dried mangoes", desc: "Sweet, chewy, 200g pack", cat: "Snacks", badge: "#ffc21a", img: "images/01.jpg", price: 180 },
-  2: { name: "Otap biscuits", desc: "Flaky puff pastry, box of 10", cat: "Snacks", badge: "#ffc21a", img: "images/02.jpg", price: 120 },
-  3: { name: "Rosquillos", desc: "Crisp butter cookies, 250g", cat: "Snacks", badge: "#ffc21a", img: "images/03.jpg", price: 150 },
-  4: { name: "Sinamay tote bag", desc: "Handwoven, fits a laptop", cat: "Crafts", badge: "#ff8a1f", img: "images/04.jpg", price: 450 },
-  5: { name: "Mini guitar keychain", desc: "Handmade in Mactan", cat: "Crafts", badge: "#ff8a1f", img: "images/05.jpg", price: 95 },
-  6: { name: "Cebu t-shirt", desc: "Cotton, sizes S to XL", cat: "Apparel", badge: "#7fd1c9", img: "images/06.jpg", price: 350 },
+  1: { name: "Dried mangoes", img: "images/01.jpg", price: 180 },
+  2: { name: "Otap biscuits", img: "images/02.jpg", price: 120 },
+  3: { name: "Rosquillos", img: "images/03.jpg", price: 150 },
+  4: { name: "Sinamay tote bag", img: "images/04.jpg", price: 450 },
+  5: { name: "Mini guitar keychain", img: "images/05.jpg", price: 95 },
+  6: { name: "Cebu t-shirt", img: "images/06.jpg", price: 350 },
 };
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const peso = (n) => "₱" + n.toLocaleString("en-PH");
 
-const FONT_STACK = "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-const DISPLAY_STACK = "'Bricolage Grotesque', 'Nunito', 'Trebuchet MS', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
 
-function buildEmailHtml({ orderNo, orderDate, name, email, phone, address, lines, total, totalQty, siteUrl, isShopCopy = false }) {
+function buildEmailHtml({ orderNo, orderDate, name, email, phone, address, lines, total, siteUrl, supportEmail, isShopCopy = false }) {
   const preheader = isShopCopy
-    ? `New order ${orderNo} from ${name} (${totalQty} ${totalQty === 1 ? "item" : "items"} · ${peso(total)})`
-    : `Thanks for your order, ${name}! Here is your Pasalubong Corner receipt for ${orderNo} (${peso(total)}).`;
+    ? `New order ${orderNo} from ${name} (${peso(total)})`
+    : `We received your order ${orderNo} and we'll let you know when it's on the way.`;
 
-  const kickerBg = isShopCopy ? "#d63a2b" : "#ffc21a";
-  const kickerColor = isShopCopy ? "#ffffff" : "#12242a";
-  const kickerText = isShopCopy ? "New Customer Order" : "Made in Cebu · Order Confirmed";
-
-  const heroHeading = isShopCopy
-    ? `New order from <span style="display:inline-block;padding:2px 10px;border-radius:10px;background:#ffc21a;color:#12242a;">${esc(name)}</span>`
-    : `Thanks for your order, <span style="display:inline-block;padding:2px 10px;border-radius:10px;background:#ffc21a;color:#12242a;">${esc(name)}!</span>`;
-
-  const heroLead = isShopCopy
-    ? "A customer just placed an order on Pasalubong Corner. Reach out to confirm delivery details and any shipping fee."
-    : "We’ve received your order and are getting your Cebu treats &amp; handmade goods ready. We’ll contact you shortly to confirm delivery.";
+  const heading = isShopCopy ? "New Order Received" : "Order Confirmation";
+  const subheading = isShopCopy
+    ? `Order placed by ${esc(name)} on ${esc(orderDate)}.`
+    : "We received your order and we’ll contact you shortly when we prepare it for delivery.";
 
   const itemRowsHtml = lines.map((l) => {
     const imgUrl = `${siteUrl}/${l.img}`;
     return `
       <tr>
-        <td style="padding:0 0 12px 0;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:2.5px solid #12242a;border-radius:18px;box-shadow:3px 3px 0 #12242a;">
-            <tr>
-              <td width="72" valign="middle" style="padding:12px 0 12px 12px;">
-                <div style="width:64px;height:64px;background:${l.badge};border:2px solid #12242a;border-radius:14px;padding:4px;box-sizing:border-box;text-align:center;">
-                  <img src="${esc(imgUrl)}" width="52" height="52" alt="${esc(l.name)}" style="display:block;width:52px;height:52px;object-fit:contain;border-radius:8px;background:#ffffff;margin:0 auto;">
-                </div>
-              </td>
-              <td valign="middle" style="padding:12px 10px 12px 12px;font-family:${FONT_STACK};color:#12242a;">
-                <div style="font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#0a6c74;line-height:1.2;">${esc(l.cat)}</div>
-                <div style="font-family:${DISPLAY_STACK};font-size:16px;font-weight:800;color:#12242a;line-height:1.25;margin-top:2px;">${esc(l.name)}</div>
-                <div style="font-size:13px;font-weight:700;color:#4b5f64;margin-top:3px;">
-                  ${peso(l.price)} each &nbsp;&middot;&nbsp;
-                  <span style="display:inline-block;padding:1px 8px;background:#fff6e3;border:1.5px solid #12242a;border-radius:999px;font-size:12px;font-weight:800;color:#12242a;">Qty: ${l.qty}</span>
-                </div>
-              </td>
-              <td valign="middle" align="right" style="padding:12px 14px 12px 6px;white-space:nowrap;">
-                <span style="display:inline-block;padding:4px 12px;background:#ffc21a;border:2px solid #12242a;border-radius:10px;font-family:${DISPLAY_STACK};font-size:16px;font-weight:800;color:#12242a;">
-                  ${peso(l.sub)}
-                </span>
-              </td>
-            </tr>
-          </table>
+        <td width="44" valign="middle" style="padding:18px 0;border-bottom:1px solid #ececec;font-family:${FONT_STACK};font-size:14px;color:#555555;white-space:nowrap;">
+          ${l.qty}&nbsp;&nbsp;x
+        </td>
+        <td width="104" valign="middle" style="padding:18px 20px 18px 4px;border-bottom:1px solid #ececec;">
+          <img src="${esc(imgUrl)}" width="96" height="68" alt="${esc(l.name)}" style="display:block;width:96px;height:68px;object-fit:contain;background-color:#f7f7f7;border:1px solid #eeeeee;border-radius:2px;padding:4px;box-sizing:border-box;">
+        </td>
+        <td valign="middle" style="padding:18px 12px 18px 0;border-bottom:1px solid #ececec;font-family:${FONT_STACK};font-size:14px;font-weight:500;color:#222222;line-height:1.4;">
+          ${esc(l.name)}
+        </td>
+        <td valign="middle" align="right" style="padding:18px 0;border-bottom:1px solid #ececec;font-family:${FONT_STACK};font-size:14px;font-weight:500;color:#222222;white-space:nowrap;">
+          ${peso(l.sub)}
         </td>
       </tr>`;
   }).join("");
@@ -69,222 +49,139 @@ function buildEmailHtml({ orderNo, orderDate, name, email, phone, address, lines
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order ${esc(orderNo)} · Pasalubong Corner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+  <title>${esc(heading)} · ${esc(orderNo)}</title>
+  <style>
+    @media only screen and (max-width: 560px) {
+      .email-card { padding: 28px 20px !important; }
+      .col-split { display: block !important; width: 100% !important; padding-right: 0 !important; }
+      .col-split-right { display: block !important; width: 100% !important; padding-top: 24px !important; }
+    }
+  </style>
 </head>
-<body style="margin:0;padding:0;background-color:#fff6e3;font-family:${FONT_STACK};color:#12242a;-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:${FONT_STACK};color:#222222;-webkit-font-smoothing:antialiased;">
   <!-- Preheader -->
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:#fff6e3;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:#ffffff;">
     ${esc(preheader)}
   </div>
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fff6e3;padding:24px 12px 40px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;padding:28px 12px 48px;">
     <tr>
       <td align="center">
-        <!-- Main Card Container -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#fffdf8;border:3px solid #12242a;border-radius:26px;box-shadow:6px 6px 0 #12242a;overflow:hidden;">
 
-          <!-- Top Announcement Bar -->
+        <!-- Top Centered Brand Logo (outside the bordered card) -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;">
           <tr>
-            <td align="center" style="background-color:#12242a;color:#ffc21a;padding:9px 16px;font-family:${FONT_STACK};font-size:12px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;">
-              Free email receipt on every order &middot; Handpicked from Cebu
+            <td valign="middle" style="padding-right:8px;">
+              <div style="width:18px;height:18px;border:2px solid #12242a;border-radius:50% 50% 50% 4px;background-color:#ffc21a;box-shadow:inset -4px -4px 0 #0a6c74;"></div>
+            </td>
+            <td valign="middle" style="font-family:${FONT_STACK};font-size:12px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#12242a;">
+              <a href="${esc(siteUrl)}" style="color:#12242a;text-decoration:none;">PASALUBONG CORNER</a>
             </td>
           </tr>
+        </table>
 
-          <!-- Brand Header Bar -->
+        <!-- Main Bordered Container -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="email-card" style="max-width:560px;background-color:#ffffff;border:1px solid #e4e4e4;padding:44px 42px;">
           <tr>
-            <td style="background-color:#fff6e3;padding:16px 24px;border-bottom:3px solid #12242a;">
+            <td>
+
+              <!-- Title & Subtitle -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td valign="middle">
-                    <a href="${esc(siteUrl)}" style="text-decoration:none;color:#12242a;display:inline-block;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                        <tr>
-                          <td valign="middle" style="padding-right:10px;">
-                            <div style="width:28px;height:28px;border:2.5px solid #12242a;border-radius:14px 14px 14px 4px;background-color:#ffc21a;box-shadow:inset -6px -6px 0 #0a6c74;"></div>
-                          </td>
-                          <td valign="middle" style="font-family:${DISPLAY_STACK};font-size:20px;font-weight:800;color:#12242a;letter-spacing:-0.02em;">
-                            Pasalubong Corner
-                          </td>
-                        </tr>
-                      </table>
-                    </a>
-                  </td>
-                  <td valign="middle" align="right">
-                    <span style="display:inline-block;padding:5px 12px;background-color:#ffffff;border:2px solid #12242a;border-radius:999px;font-family:${DISPLAY_STACK};font-size:12px;font-weight:800;color:#12242a;box-shadow:2px 2px 0 #12242a;">
-                      ${esc(orderNo)}
-                    </span>
+                  <td align="center" style="padding-bottom:32px;border-bottom:1px solid #ececec;">
+                    <h1 style="margin:0 0 12px 0;font-family:${FONT_STACK};font-size:28px;font-weight:400;color:#12242a;letter-spacing:-0.01em;">
+                      ${esc(heading)}
+                    </h1>
+                    <p style="margin:0;font-family:${FONT_STACK};font-size:14px;line-height:1.55;color:#444444;">
+                      ${subheading}
+                    </p>
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
 
-          <!-- Fiesta Bunting Accent Strip -->
-          <tr>
-            <td style="padding:0;border-bottom:3px solid #12242a;">
+              <!-- Your Order (#ORD-XXXX) Header -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td width="20%" height="10" style="background-color:#ffc21a;font-size:0;line-height:0;">&nbsp;</td>
-                  <td width="20%" height="10" style="background-color:#ff8a1f;font-size:0;line-height:0;">&nbsp;</td>
-                  <td width="20%" height="10" style="background-color:#d63a2b;font-size:0;line-height:0;">&nbsp;</td>
-                  <td width="20%" height="10" style="background-color:#0a6c74;font-size:0;line-height:0;">&nbsp;</td>
-                  <td width="20%" height="10" style="background-color:#2f9e5a;font-size:0;line-height:0;">&nbsp;</td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Hero Banner -->
-          <tr>
-            <td style="background-color:#0a6c74;background-image:linear-gradient(135deg,#0a6c74 0%,#063f45 100%);padding:32px 24px;border-bottom:3px solid #12242a;color:#fff6e3;">
-              <div style="margin-bottom:14px;">
-                <span style="display:inline-block;padding:5px 14px;background-color:${kickerBg};color:${kickerColor};border:2px solid #12242a;border-radius:999px;font-family:${FONT_STACK};font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;box-shadow:2px 2px 0 #12242a;">
-                  ${kickerText}
-                </span>
-              </div>
-              <h1 style="margin:0 0 12px 0;font-family:${DISPLAY_STACK};font-size:28px;line-height:1.12;font-weight:800;color:#fff6e3;letter-spacing:-0.02em;">
-                ${heroHeading}
-              </h1>
-              <p style="margin:0 0 22px 0;font-family:${FONT_STACK};font-size:15px;line-height:1.55;font-weight:600;color:#e6f3f1;">
-                ${heroLead}
-              </p>
-
-              <!-- Order Meta Pills -->
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-                <tr>
-                  <td style="padding-right:8px;padding-bottom:6px;">
-                    <span style="display:inline-block;padding:6px 14px;background-color:#fff6e3;border:2px solid #12242a;border-radius:999px;font-family:${FONT_STACK};font-size:12px;font-weight:800;color:#12242a;">
-                      Receipt: <strong style="font-family:${DISPLAY_STACK};">${esc(orderNo)}</strong>
-                    </span>
-                  </td>
-                  <td style="padding-right:8px;padding-bottom:6px;">
-                    <span style="display:inline-block;padding:6px 14px;background-color:#fff6e3;border:2px solid #12242a;border-radius:999px;font-family:${FONT_STACK};font-size:12px;font-weight:800;color:#12242a;">
-                      ${esc(orderDate)}
-                    </span>
-                  </td>
-                  <td style="padding-bottom:6px;">
-                    <span style="display:inline-block;padding:6px 14px;background-color:#ffc21a;border:2px solid #12242a;border-radius:999px;font-family:${FONT_STACK};font-size:12px;font-weight:800;color:#12242a;">
-                      ${totalQty} ${totalQty === 1 ? "item" : "items"}
-                    </span>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <!-- Main Body -->
-          <tr>
-            <td style="background-color:#fff6e3;padding:28px 24px;">
-
-              <!-- Section Title: Your Cart -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;">
-                <tr>
-                  <td valign="bottom">
-                    <div style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#0a6c74;margin-bottom:4px;">Order Summary</div>
-                    <h2 style="margin:0;font-family:${DISPLAY_STACK};font-size:22px;font-weight:800;color:#12242a;letter-spacing:-0.02em;">
-                      Your <span style="display:inline-block;padding:0 8px;background-color:#ffc21a;border-radius:8px;">pasalubong</span> bag
-                    </h2>
+                  <td style="padding:20px 0 14px 0;border-bottom:1px solid #ececec;font-family:${FONT_STACK};font-size:14px;font-weight:700;color:#12242a;">
+                    Your Order (#${esc(orderNo)}):
                   </td>
                 </tr>
               </table>
 
-              <!-- Items List -->
+              <!-- Order Items Table -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 ${itemRowsHtml}
               </table>
 
-              <!-- Total Box -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;padding-top:16px;border-top:3px dashed #12242a;">
+              <!-- Shipping Address & Details (2 Columns) -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:28px 0 26px 0;border-bottom:1px solid #ececec;">
                 <tr>
-                  <td valign="middle" style="font-family:${DISPLAY_STACK};font-size:18px;font-weight:800;color:#12242a;">
-                    Total
-                  </td>
-                  <td valign="middle" align="right" style="font-family:${DISPLAY_STACK};font-size:28px;font-weight:800;color:#12242a;letter-spacing:-0.02em;">
-                    ${peso(total)}
-                  </td>
-                </tr>
-              </table>
+                  <!-- Left Column: Shipping Address & Payment -->
+                  <td width="52%" valign="top" class="col-split" style="padding-right:20px;font-family:${FONT_STACK};font-size:14px;line-height:1.6;color:#333333;">
+                    <div style="font-weight:700;color:#12242a;margin-bottom:8px;">Shipping Address</div>
+                    <div>${esc(name)}</div>
+                    <div style="white-space:pre-line;">${esc(address)}</div>
+                    <div style="margin-top:4px;">${esc(phone)}</div>
+                    <div><a href="mailto:${esc(email)}" style="color:#333333;text-decoration:none;">${esc(email)}</a></div>
 
-              <!-- Delivery Fee Note Nudge (matches .nudge in cart drawer) -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;margin-bottom:24px;background-color:#ffe9a8;border:2px solid #12242a;border-radius:14px;">
-                <tr>
-                  <td style="padding:12px 16px;font-family:${FONT_STACK};font-size:13px;font-weight:700;color:#12242a;line-height:1.45;">
-                    <strong>Note:</strong> Delivery fee, if any, is confirmed when we contact you via phone or email.
+                    <div style="font-weight:700;color:#12242a;margin-top:20px;margin-bottom:6px;">Delivery Note</div>
+                    <div style="color:#555555;font-size:13px;">Delivery fee, if any, is confirmed when we contact you.</div>
                   </td>
-                </tr>
-              </table>
 
-              <!-- Delivery Details Card (matches #checkoutForm card) -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border:3px solid #12242a;border-radius:22px;box-shadow:4px 4px 0 #12242a;">
-                <tr>
-                  <td style="padding:20px 22px;">
-                    <div style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#0a6c74;margin-bottom:2px;">Where it’s headed</div>
-                    <h3 style="margin:0 0 14px 0;font-family:${DISPLAY_STACK};font-size:19px;font-weight:800;color:#12242a;">
-                      Delivery details
-                    </h3>
-
-                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <!-- Right Column: Details -->
+                  <td width="48%" valign="top" class="col-split-right" style="font-family:${FONT_STACK};font-size:14px;line-height:1.6;color:#333333;">
+                    <div style="font-weight:700;color:#12242a;margin-bottom:8px;">Details</div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:${FONT_STACK};font-size:14px;color:#333333;">
                       <tr>
-                        <td style="padding:10px 14px;background-color:#fffdf8;border:2px solid #12242a;border-radius:12px;">
-                          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#4b5f64;">Full name</div>
-                          <div style="font-size:15px;font-weight:800;color:#12242a;margin-top:2px;">${esc(name)}</div>
-                        </td>
+                        <td style="padding:2px 0;">Subtotal</td>
+                        <td align="right" style="padding:2px 0;">${peso(total)}</td>
                       </tr>
-                      <tr><td height="10" style="font-size:0;line-height:0;">&nbsp;</td></tr>
                       <tr>
-                        <td style="padding:10px 14px;background-color:#fffdf8;border:2px solid #12242a;border-radius:12px;">
-                          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#4b5f64;">Email &amp; Phone</div>
-                          <div style="font-size:14px;font-weight:700;color:#12242a;margin-top:2px;">
-                            <a href="mailto:${esc(email)}" style="color:#0a6c74;text-decoration:underline;font-weight:800;">${esc(email)}</a>
-                            &nbsp;&middot;&nbsp;
-                            <a href="tel:${esc(phone)}" style="color:#12242a;text-decoration:none;font-weight:800;">${esc(phone)}</a>
-                          </div>
-                        </td>
+                        <td style="padding:2px 0;">Delivery</td>
+                        <td align="right" style="padding:2px 0;color:#777777;">Confirmed on contact</td>
                       </tr>
-                      <tr><td height="10" style="font-size:0;line-height:0;">&nbsp;</td></tr>
                       <tr>
-                        <td style="padding:10px 14px;background-color:#fffdf8;border:2px solid #12242a;border-radius:12px;">
-                          <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:#4b5f64;">Delivery address</div>
-                          <div style="font-size:15px;font-weight:700;color:#12242a;margin-top:2px;white-space:pre-line;">${esc(address)}</div>
-                        </td>
+                        <td style="padding:2px 0;">Order Date</td>
+                        <td align="right" style="padding:2px 0;color:#777777;">${esc(orderDate)}</td>
                       </tr>
                     </table>
                   </td>
                 </tr>
               </table>
 
-              <!-- CTA Button -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+              <!-- Centered Order Total -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td align="center">
-                    <a href="${esc(isShopCopy ? `mailto:${email}?subject=Your%20Pasalubong%20Corner%20order%20${orderNo}` : siteUrl)}"
-                       style="display:inline-block;padding:14px 28px;background-color:#ffc21a;color:#12242a;border:3px solid #12242a;border-radius:999px;font-family:${DISPLAY_STACK};font-size:16px;font-weight:800;text-decoration:none;box-shadow:4px 4px 0 #12242a;">
-                      ${isShopCopy ? `Reply to ${esc(name)} &rarr;` : "Visit Pasalubong Corner &rarr;"}
-                    </a>
+                  <td align="center" style="padding:30px 0;border-bottom:1px solid #ececec;">
+                    <div style="font-family:${FONT_STACK};font-size:13px;color:#888888;margin-bottom:6px;">
+                      Order Total
+                    </div>
+                    <div style="font-family:${FONT_STACK};font-size:32px;font-weight:700;color:#12242a;letter-spacing:-0.02em;">
+                      ${peso(total)}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Keep in Touch Footer -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" style="padding:28px 0 4px 0;font-family:${FONT_STACK};">
+                    <div style="font-size:18px;font-weight:400;color:#12242a;margin-bottom:12px;">
+                      Keep in Touch
+                    </div>
+                    <p style="margin:0;font-size:13px;line-height:1.6;color:#444444;">
+                      If you have any questions, concerns, or suggestions,<br>
+                      please email us: <a href="mailto:${esc(supportEmail)}" style="color:#1a56db;text-decoration:underline;">${esc(supportEmail)}</a>
+                    </p>
                   </td>
                 </tr>
               </table>
 
             </td>
           </tr>
-
-          <!-- Footer (matches .foot on website) -->
-          <tr>
-            <td style="background-color:#063f45;padding:26px 24px 22px;border-top:3px solid #12242a;color:#d8ebe9;text-align:center;">
-              <div style="font-family:${DISPLAY_STACK};font-size:17px;font-weight:800;color:#fff6e3;margin-bottom:6px;">
-                Pasalubong Corner
-              </div>
-              <p style="margin:0 auto 16px;max-width:360px;font-family:${FONT_STACK};font-size:13px;line-height:1.5;color:#d8ebe9;font-weight:600;">
-                Cebu’s favorite treats and handmade goods, packed with care and sent your way.
-              </p>
-              <div style="padding-top:14px;border-top:2px dashed rgba(255,255,255,0.25);font-size:12px;color:#b5d6d2;font-weight:600;">
-                &copy; ${new Date().getFullYear()} Pasalubong Corner &middot; Cebu City, Philippines
-              </div>
-            </td>
-          </tr>
-
         </table>
+
       </td>
     </tr>
   </table>
@@ -292,27 +189,28 @@ function buildEmailHtml({ orderNo, orderDate, name, email, phone, address, lines
 </html>`;
 }
 
-function buildEmailText({ orderNo, orderDate, name, email, phone, address, lines, total, isShopCopy = false }) {
-  const header = isShopCopy
-    ? `NEW ORDER ${orderNo} — PASALUBONG CORNER`
-    : `THANKS FOR YOUR ORDER, ${name.toUpperCase()}!`;
-  const itemLines = lines.map((l) => `- ${l.name} x ${l.qty} (${peso(l.price)} each) = ${peso(l.sub)}`).join("\n");
+function buildEmailText({ orderNo, orderDate, name, email, phone, address, lines, total, supportEmail, isShopCopy = false }) {
+  const header = isShopCopy ? `New Order Received (#${orderNo})` : `Order Confirmation (#${orderNo})`;
+  const itemLines = lines.map((l) => `${l.qty} x ${l.name} — ${peso(l.sub)}`).join("\n");
   return [
+    "PASALUBONG CORNER",
     header,
-    `Order: ${orderNo} (${orderDate})`,
     "",
-    "ORDER SUMMARY",
+    `Your Order (#${orderNo}):`,
     itemLines,
-    `Total: ${peso(total)}`,
-    "(Note: Delivery fee, if any, is confirmed when we contact you.)",
     "",
-    "DELIVERY DETAILS",
-    `Name: ${name}`,
-    `Email: ${email}`,
-    `Phone: ${phone}`,
-    `Address: ${address}`,
+    "Shipping Address:",
+    name,
+    address,
+    phone,
+    email,
     "",
-    "Pasalubong Corner · Cebu City, Philippines",
+    "Details:",
+    `Subtotal: ${peso(total)}`,
+    `Order Date: ${orderDate}`,
+    `Order Total: ${peso(total)}`,
+    "",
+    `Questions? Email us: ${supportEmail}`,
   ].join("\n");
 }
 
@@ -337,17 +235,12 @@ module.exports = async (req, res) => {
   // Prices come from the server, not the browser, so totals can't be tampered with.
   const lines = [];
   let total = 0;
-  let totalQty = 0;
   for (const it of items) {
     const p = PRODUCTS[it.id], qty = Math.floor(Number(it.qty));
     if (!p || !(qty > 0 && qty <= 99)) return res.status(400).json({ error: "Invalid item in cart." });
     total += p.price * qty;
-    totalQty += qty;
     lines.push({
       name: p.name,
-      desc: p.desc,
-      cat: p.cat,
-      badge: p.badge,
       img: p.img,
       price: p.price,
       qty,
@@ -366,6 +259,10 @@ module.exports = async (req, res) => {
   const host = req.headers["x-forwarded-host"] || req.headers.host;
   const siteUrl = (process.env.SITE_URL || (host ? `${proto}://${host}` : "https://goarcana.com")).replace(/\/+$/, "");
 
+  const from = process.env.FROM_EMAIL || "Pasalubong Corner <onboarding@resend.dev>";
+  const fromMatch = from.match(/<([^>]+)>/);
+  const supportEmail = process.env.SHOP_EMAIL || (fromMatch ? fromMatch[1] : from);
+
   const sharedData = {
     orderNo,
     orderDate,
@@ -375,18 +272,16 @@ module.exports = async (req, res) => {
     address: address.trim(),
     lines,
     total,
-    totalQty,
     siteUrl,
+    supportEmail,
   };
-
-  const from = process.env.FROM_EMAIL || "Pasalubong Corner <onboarding@resend.dev>";
 
   try {
     await Promise.all([
       sendEmail({
         from,
         to: email.trim(),
-        subject: `Your order ${orderNo} · Pasalubong Corner`,
+        subject: `Order Confirmation (${orderNo})`,
         html: buildEmailHtml({ ...sharedData, isShopCopy: false }),
         text: buildEmailText({ ...sharedData, isShopCopy: false }),
       }),
