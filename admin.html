@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/">
 <title>Admin Dashboard · Pasalubong Corner Cebu</title>
 <meta name="description" content="Admin Panel and Inventory, Order, Promo & Excel Sales Reports Manager for Pasalubong Corner Cebu.">
 <meta name="theme-color" content="#063f45">
@@ -25,13 +26,10 @@
       </div>
     </div>
     <p class="login-sub">Sign in to manage products, inventory, customer orders, promo codes, and sales reports.</p>
-
-
-
-    <form id="adminLoginForm" novalidate>
+    <form id="adminLoginForm">
       <div class="field">
         <label for="adminEmail">Admin Email</label>
-        <input id="adminEmail" name="email" type="email" required autocomplete="username" placeholder="admin@pasalubong.ph">
+        <input id="adminEmail" name="email" type="email" required autocomplete="username" autocapitalize="none" spellcheck="false">
       </div>
       <div class="field">
         <label for="adminPassword">Password</label>

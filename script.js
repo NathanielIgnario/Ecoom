@@ -140,7 +140,7 @@ function renderCats() {
   $("#cats").innerHTML = cats.map((c) => {
     const n = prods.filter((p) => p.cat === c).length;
     return `<button class="cat ${esc(c.toLowerCase())}" data-cat="${esc(c)}" type="button" aria-label="Shop ${esc(c)}, ${n} ${n === 1 ? "item" : "items"}">
-      <img src="${esc(getCatImage(c))}" alt="" loading="lazy">
+      <img src="${esc(getCatImage(c))}" alt="" loading="lazy" decoding="async">
       <div class="cat-bar"><b>${esc(c)}</b><small>${n} ${n === 1 ? "item" : "items"} →</small></div>
     </button>`;
   }).join("");
@@ -205,7 +205,7 @@ function renderProducts() {
     return `
     <article class="card ${esc(p.cat.toLowerCase())} ${st.status === "out" ? "is-out" : ""} ${cart[p.id] ? "in-cart" : ""}" data-id="${p.id}" style="--i:${i}">
       <div class="pic" data-qv="${p.id}">
-        <img class="${p.cover ? "cover" : ""}" src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">
+        <img class="${p.cover ? "cover" : ""}" src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" decoding="async">
         ${p.badge ? `<span class="badge">${esc(p.badge)}</span>` : ""}
         <span class="stock-pill ${st.status}">${esc(st.cardLabel)}</span>
         <div class="ctl">${buyControl(p)}</div>

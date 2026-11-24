@@ -11,8 +11,8 @@
   inset: 0;
   z-index: 100;
   display: grid;
-  place-items: center;
-  padding: 20px;
+  place-items: safe center;
+  padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
   background: var(--weave), linear-gradient(135deg, var(--sea), var(--deep));
   overflow-y: auto;
 }
@@ -41,50 +41,6 @@
   margin: 0 0 18px;
   color: var(--muted);
   font-size: .95rem;
-}
-.demo-pill {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 12px 14px;
-  border: 2.5px solid var(--ink);
-  border-radius: 18px;
-  background: var(--sun-soft);
-  font-size: .88rem;
-}
-.demo-pill-info {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.demo-badge {
-  padding: 2px 8px;
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  background: var(--sun);
-  font-family: var(--display);
-  font-size: .72rem;
-  font-weight: 800;
-}
-.demo-fill-btn {
-  padding: 6px 14px;
-  border: 2px solid var(--ink);
-  border-radius: 999px;
-  background: var(--sun);
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: .82rem;
-  box-shadow: 2px 2px 0 var(--ink);
-  transition: transform .12s, box-shadow .12s, background .15s;
-}
-.demo-fill-btn:hover {
-  background: var(--mango);
-  transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 var(--ink);
 }
 .login-foot {
   margin-top: 18px;
@@ -1105,6 +1061,12 @@
 }
 
 @media (max-width: 520px) {
+  .login-card {
+    padding: 20px;
+  }
+  .login-brand {
+    gap: 10px;
+  }
   .kpi-grid {
     grid-template-columns: 1fr;
   }

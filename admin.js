@@ -94,12 +94,6 @@
     const loggedIn = db().isAdminLoggedIn();
     const gate = $("#loginGate");
     const app = $("#adminApp");
-    const creds = db().getAdminCredentials
-      ? db().getAdminCredentials()
-      : { email: "admin@pasalubong.ph" };
-    if ($("#demoCredsText") && creds) {
-      $("#demoCredsText").textContent = `${creds.email || "admin@pasalubong.ph"} / ${creds.password || "admin123"}`;
-    }
     if (loggedIn) {
       gate.hidden = true;
       app.hidden = false;
@@ -111,15 +105,6 @@
   }
 
   function initAuthEvents() {
-    $("#fillDemoBtn").addEventListener("click", () => {
-      const creds = db().getAdminCredentials
-        ? db().getAdminCredentials()
-        : { email: "admin@pasalubong.ph", password: "admin123" };
-      $("#adminEmail").value = creds.email || "admin@pasalubong.ph";
-      $("#adminPassword").value = creds.password || "admin123";
-      $("#adminLoginMsg").textContent = "";
-    });
-
     $("#adminPwToggle").addEventListener("click", () => {
       const input = $("#adminPassword");
       const btn = $("#adminPwToggle");
