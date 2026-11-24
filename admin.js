@@ -120,14 +120,11 @@
       const password = $("#adminPassword").value;
       const msg = $("#adminLoginMsg");
       const res = db().loginAdmin(email, password);
-      if (res && res.ok === false) {
+      if (!res?.ok || !db().isAdminLoggedIn()) {
         msg.className = "form-msg err";
-        msg.textContent = res.error || "Invalid admin email or password.";
-        return;
-      }
-      if (!res) {
-        msg.className = "form-msg err";
-        msg.textContent = "Invalid admin email or password.";
+        msg.textContent = res?.ok
+          ? "This browser couldn’t save your sign-in. Allow site data and try again."
+          : res?.error || "Invalid admin email or password.";
         return;
       }
       msg.textContent = "";
@@ -1754,12 +1751,19 @@
 
   /* ==================== 10. INITIALIZATION ==================== */
   function init() {
+    const address = new URL(window.location.href);
+    if (address.searchParams.has("password")) {
+      address.searchParams.delete("email");
+      address.searchParams.delete("password");
+      window.history.replaceState(window.history.state, "", address);
+    }
+
     if (!db()) {
       console.error("PasalubongDB not loaded.");
       return;
     }
-    initPresetGallery();
     initAuthEvents();
+    initPresetGallery();
     initTabs();
     initDashboardEvents();
     db().subscribe(() => {
@@ -1768,6 +1772,8 @@
       }
     });
     syncAuthView();
+    $("#adminLoginMsg").textContent = "";
+    $("#adminLoginSubmit").disabled = false;
   }
 
   if (document.readyState === "loading") {

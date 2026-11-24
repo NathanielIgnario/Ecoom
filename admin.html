@@ -7,6 +7,7 @@
 <title>Admin Dashboard · Pasalubong Corner Cebu</title>
 <meta name="description" content="Admin Panel and Inventory, Order, Promo & Excel Sales Reports Manager for Pasalubong Corner Cebu.">
 <meta name="theme-color" content="#063f45">
+<meta name="referrer" content="no-referrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -26,20 +27,20 @@
       </div>
     </div>
     <p class="login-sub">Sign in to manage products, inventory, customer orders, promo codes, and sales reports.</p>
-    <form id="adminLoginForm">
+    <form id="adminLoginForm" method="post">
       <div class="field">
         <label for="adminEmail">Admin Email</label>
-        <input id="adminEmail" name="email" type="email" required autocomplete="username" autocapitalize="none" spellcheck="false">
+        <input id="adminEmail" type="email" required autocomplete="username" autocapitalize="none" spellcheck="false">
       </div>
       <div class="field">
         <label for="adminPassword">Password</label>
         <div class="pw">
-          <input id="adminPassword" name="password" type="password" required autocomplete="current-password" placeholder="Enter admin password">
+          <input id="adminPassword" type="password" required autocomplete="current-password" placeholder="Enter admin password">
           <button type="button" class="pw-toggle" id="adminPwToggle" aria-label="Show password" aria-pressed="false">Show</button>
         </div>
       </div>
-      <button type="submit" class="primary" id="adminLoginSubmit">Sign in to Dashboard</button>
-      <p id="adminLoginMsg" class="form-msg" role="status"></p>
+      <button type="submit" class="primary" id="adminLoginSubmit" disabled>Sign in to Dashboard</button>
+      <p id="adminLoginMsg" class="form-msg" role="status">Loading sign-in… If this message stays visible, reload the page and make sure JavaScript is enabled.</p>
     </form>
 
     <div class="login-foot">
@@ -691,7 +692,7 @@
 <div id="toast" class="toast" role="status"></div>
 
 <script src="firebase-config.js"></script>
-<script src="db.js"></script>
-<script src="admin.js"></script>
+<script src="db.js?v=2"></script>
+<script src="admin.js?v=2"></script>
 </body>
 </html>
