@@ -22,6 +22,13 @@ const esc = (s) =>
 const peso = (n) => "₱" + Number(n || 0).toLocaleString("en-PH");
 
 const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+const ORDER_STATUS_MESSAGES = {
+  Confirmed: "We’ve confirmed your order and will prepare it for delivery.",
+  Packing: "We’re packing your order and getting it ready for delivery.",
+  "Out for Delivery": "Your order is on its way to your delivery address.",
+  Delivered: "Your order has been marked as delivered. Thank you for shopping with us.",
+  Cancelled: "Your order has been cancelled. Please contact us if you have any questions.",
+};
 
 function resolveSafeEmailImg(img, siteUrl, fallbackImg = "images/01.jpg") {
   const raw = typeof img === "string" && img.trim() ? img.trim() : fallbackImg;
@@ -54,6 +61,7 @@ function buildEmailHtml({
   siteUrl = "https://goarcana.com",
   supportEmail = "onboarding@resend.dev",
   isShopCopy = false,
+  orderStatus = "",
 } = {}) {
   const computedSubtotal = Number.isFinite(Number(subtotal)) ? Number(subtotal) : Number(total) || 0;
   const computedDiscount = Math.max(0, Number(discount) || 0);
@@ -67,14 +75,18 @@ function buildEmailHtml({
   const deliveryDisplay = computedDelivery === 0 ? "Free" : peso(computedDelivery);
   const discountLabel = cleanCoupon ? `Discount (${cleanCoupon})` : "Discount";
 
-  const preheader = isShopCopy
-    ? `New order ${orderNo} from ${name} (${peso(computedTotal)})`
-    : `We received your order ${orderNo} and we'll let you know when it's on the way.`;
+  const preheader = orderStatus
+    ? `Order ${orderNo} is now ${orderStatus}.`
+    : isShopCopy
+      ? `New order ${orderNo} from ${name} (${peso(computedTotal)})`
+      : `We received your order ${orderNo} and we'll let you know when it's on the way.`;
 
-  const heading = isShopCopy ? "New Order Received" : "Order Confirmation";
-  const subheading = isShopCopy
-    ? `Order placed by ${esc(name)} on ${esc(orderDate)}.`
-    : "We received your order and we’ll contact you shortly when we prepare it for delivery.";
+  const heading = orderStatus ? "Order Status Update" : isShopCopy ? "New Order Received" : "Order Confirmation";
+  const subheading = orderStatus
+    ? esc(ORDER_STATUS_MESSAGES[orderStatus] || `Your order is now ${orderStatus}.`)
+    : isShopCopy
+      ? `Order placed by ${esc(name)} on ${esc(orderDate)}.`
+      : "We received your order and we’ll contact you shortly when we prepare it for delivery.";
 
   const itemRowsHtml = lines
     .map((l) => {
@@ -163,6 +175,7 @@ function buildEmailHtml({
                     <h1 style="margin:0 0 12px 0;font-family:${FONT_STACK};font-size:28px;font-weight:400;color:#12242a;letter-spacing:-0.01em;">
                       ${esc(heading)}
                     </h1>
+                    ${orderStatus ? `<p style="margin:0 0 14px 0;"><span style="display:inline-block;padding:6px 14px;border:1px solid #12242a;border-radius:16px;background-color:#ffe9ae;font-size:14px;font-weight:700;color:#12242a;">${esc(orderStatus)}</span></p>` : ""}
                     <p style="margin:0;font-family:${FONT_STACK};font-size:14px;line-height:1.55;color:#444444;">
                       ${subheading}
                     </p>
@@ -184,17 +197,20 @@ function buildEmailHtml({
                 ${itemRowsHtml}
               </table>
 
-              <!-- Shipping Address & Details (2 Columns) -->
+              <!-- Order Information & Details (2 Columns) -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:28px 0 26px 0;border-bottom:1px solid #ececec;">
                 <tr>
-                  <!-- Left Column: Shipping Address & Delivery Notes -->
+                  <!-- Left Column: Order Tracking or Shipping Address -->
                   <td width="52%" valign="top" class="col-split" style="padding-right:20px;font-family:${FONT_STACK};font-size:14px;line-height:1.6;color:#333333;">
-                    <div style="font-weight:700;color:#12242a;margin-bottom:8px;">Shipping Address</div>
+                    ${orderStatus ? `
+                    <div style="font-weight:700;color:#12242a;margin-bottom:8px;">Order Tracking</div>
+                    <div>Go to <a href="${esc(siteUrl)}" style="color:#1a56db;">Pasalubong Corner</a>, select Track order, and enter <strong>${esc(orderNo)}</strong>.</div>
+                    ` : `<div style="font-weight:700;color:#12242a;margin-bottom:8px;">Shipping Address</div>
                     <div>${esc(name)}</div>
                     <div style="white-space:pre-line;">${esc(address)}</div>
                     <div style="margin-top:4px;">${esc(phone)}</div>
                     <div><a href="mailto:${esc(email)}" style="color:#333333;text-decoration:none;">${esc(email)}</a></div>
-                    ${notesBlockHtml}
+                    ${notesBlockHtml}`}
                   </td>
 
                   <!-- Right Column: Details -->
@@ -340,7 +356,12 @@ async function sendEmail(payload, idempotencyKey) {
     headers,
     body: JSON.stringify(payload),
   });
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) {
+    const detail = await r.text();
+    let code;
+    try { code = JSON.parse(detail).name; } catch {}
+    throw Object.assign(new Error(detail), { status: r.status, code });
+  }
 }
 
 const handler = async (req, res) => {

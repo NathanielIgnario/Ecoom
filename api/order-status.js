@@ -1,5 +1,5 @@
 const { createHash } = require("node:crypto");
-const { sendEmail } = require("./checkout");
+const { buildEmailHtml, DEFAULT_PRODUCTS, sendEmail } = require("./checkout");
 
 const stages = ["Pending", "Confirmed", "Packing", "Out for Delivery", "Delivered", "Cancelled"];
 const project = process.env.FIREBASE_PROJECT_ID || "pasalubong-54fb9";
@@ -77,6 +77,52 @@ function recipientFor(order) {
   return /^[^\s@,<>]+@[^\s@,<>]+\.[^\s@,<>]+$/.test(address) ? address : "";
 }
 
+function numberValue(field) {
+  const value = Number(field?.integerValue ?? field?.doubleValue);
+  return Number.isFinite(value) ? value : undefined;
+}
+
+function receiptImage(field, id, siteUrl) {
+  if (field?.stringValue) {
+    try {
+      const url = new URL(field.stringValue, siteUrl + "/");
+      if (url.protocol === "https:" && url.origin === new URL(siteUrl).origin) return url.href;
+    } catch {}
+  }
+  return DEFAULT_PRODUCTS[id]?.img || "images/01.jpg";
+}
+
+function statusReceipt(order, orderNo, orderStatus, siteUrl, supportEmail) {
+  const fields = order.fields || {};
+  const lines = (fields.items?.arrayValue?.values || []).map(({ mapValue }) => {
+    const item = mapValue?.fields || {};
+    const id = numberValue(item.id);
+    return {
+      name: item.name?.stringValue || DEFAULT_PRODUCTS[id]?.name || "Item",
+      img: receiptImage(item.img, id, siteUrl),
+      qty: numberValue(item.qty) ?? 1,
+      price: numberValue(item.price) ?? DEFAULT_PRODUCTS[id]?.price ?? 0,
+    };
+  });
+  const discount = numberValue(fields.discount) ?? 0;
+  const deliveryFee = numberValue(fields.deliveryFee) ?? 0;
+  const total = numberValue(fields.total);
+  const subtotal = numberValue(fields.subtotal) ?? (lines.length
+    ? lines.reduce((sum, item) => sum + item.price * item.qty, 0)
+    : Math.max(0, (total ?? 0) + discount - deliveryFee));
+  const date = new Date(fields.date?.timestampValue ?? fields.date?.stringValue ?? numberValue(fields.date));
+  const orderDate = Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-PH", {
+    timeZone: "Asia/Manila", year: "numeric", month: "short", day: "numeric",
+  });
+  return buildEmailHtml({
+    orderNo, orderStatus, orderDate, lines, subtotal, discount, deliveryFee,
+    total: total ?? Math.max(0, subtotal - discount + deliveryFee),
+    couponCode: fields.couponCode?.stringValue,
+    paymentMethod: fields.paymentMethod?.stringValue,
+    siteUrl, supportEmail,
+  });
+}
+
 async function deliverNotification(token, order, orderNo) {
   const state = orderState(order);
   const to = recipientFor(order);
@@ -84,13 +130,25 @@ async function deliverNotification(token, order, orderNo) {
     if (to) {
       const from = process.env.FROM_EMAIL || "Pasalubong Corner <onboarding@resend.dev>";
       const site = (process.env.SITE_URL || "https://goarcana.com").replace(/\/+$/, "");
-      const key = createHash("sha256").update(`${project}/${orderNo}/${state.status}/${state.updatedAt}`).digest("hex");
-      await sendEmail({
+      const supportEmail = process.env.SHOP_EMAIL || from.match(/<([^>]+)>/)?.[1] || from;
+      const hash = createHash("sha256").update(`${project}/${orderNo}/${state.status}/${state.updatedAt}`).digest("hex");
+      const key = `order-status/${hash}`;
+      const payload = {
         from,
         to,
         subject: `Order ${orderNo} update: ${state.status}`,
         text: `Your Pasalubong Corner order ${orderNo} is now ${state.status}.\n\nTrack your order at ${site} using this order number.\n\nPasalubong Corner`,
-      }, `order-status/${key}`);
+      };
+      try {
+        await sendEmail({
+          ...payload,
+          html: statusReceipt(order, orderNo, state.status, site, supportEmail),
+        }, key);
+      } catch (error) {
+        if (error.status !== 409 || error.code !== "invalid_idempotent_request") throw error;
+        // A pending retry may still have the original text-only email cached at Resend.
+        await sendEmail(payload, key);
+      }
     }
     await firestore(token, ":commit", {
       method: "POST", body: { writes: [updateFields(order, { statusEmailPending: { booleanValue: false } })] },
