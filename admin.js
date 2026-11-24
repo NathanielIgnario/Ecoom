@@ -45,6 +45,36 @@
   let orderStatusFilter = "All";
   let orderQuery = "";
   let toastTimer = null;
+  let staffAccess;
+  let staffUser;
+
+  function loadStaffAccess() {
+    if (!staffAccess) {
+      staffAccess = (async () => {
+        const [app, authSdk, fs] = await Promise.all([
+          db().getFirebaseApp(undefined, "pasalubong_order_staff"),
+          import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"),
+          import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"),
+        ]);
+        const auth = authSdk.getAuth(app);
+        const store = fs.getFirestore(app);
+        const isStaff = async (user) => {
+          const role = await fs.getDocFromServer(fs.doc(store, "orderStaff", user.uid));
+          return role.data()?.enabled === true;
+        };
+        return {
+          auth,
+          isStaff,
+          signIn: (email, password) => authSdk.signInWithEmailAndPassword(auth, email, password),
+          signOut: () => authSdk.signOut(auth),
+        };
+      })().catch((error) => {
+        staffAccess = null;
+        throw error;
+      });
+    }
+    return staffAccess;
+  }
 
   function db() {
     return window.PasalubongDB;
@@ -91,7 +121,7 @@
 
   /* ==================== 1. AUTH GATE & HEADER ==================== */
   function syncAuthView() {
-    const loggedIn = db().isAdminLoggedIn();
+    const loggedIn = staffUser || db().isAdminLoggedIn();
     const gate = $("#loginGate");
     const app = $("#adminApp");
     if (loggedIn) {
@@ -114,17 +144,39 @@
       btn.setAttribute("aria-pressed", String(show));
     });
 
-    $("#adminLoginForm").addEventListener("submit", (e) => {
+    $("#adminLoginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = $("#adminEmail").value.trim();
       const password = $("#adminPassword").value;
       const msg = $("#adminLoginMsg");
+      const submit = $("#adminLoginSubmit");
+      if (submit.disabled) return;
       const res = db().loginAdmin(email, password);
-      if (!res?.ok || !db().isAdminLoggedIn()) {
+      if (!res?.ok) {
+        submit.disabled = true;
+        try {
+          const staff = await loadStaffAccess();
+          const { user } = await staff.signIn(email, password);
+          if (!await staff.isStaff(user)) {
+            await staff.signOut();
+            throw Object.assign(new Error("This Firebase account does not have order staff access."), { code: "staff/not-enabled" });
+          }
+          staffUser = user;
+        } catch (error) {
+          msg.className = "form-msg err";
+          if (error.code === "staff/not-enabled") msg.textContent = error.message;
+          else if (error.code?.startsWith("auth/")) {
+            msg.textContent = "Couldn’t sign in with this Firebase account. Check your email and password.";
+          } else {
+            msg.textContent = "Firebase staff sign-in is unavailable. Try again.";
+          }
+          return;
+        } finally {
+          submit.disabled = false;
+        }
+      } else if (!db().isAdminLoggedIn()) {
         msg.className = "form-msg err";
-        msg.textContent = res?.ok
-          ? "This browser couldn’t save your sign-in. Allow site data and try again."
-          : res?.error || "Invalid admin email or password.";
+        msg.textContent = "This browser couldn’t save your sign-in. Allow site data and try again.";
         return;
       }
       msg.textContent = "";
@@ -133,12 +185,70 @@
       toast("Signed in to Pasalubong Corner Admin");
     });
 
-    $("#adminLogoutBtn").addEventListener("click", () => {
+    $("#adminLogoutBtn").addEventListener("click", async () => {
+      if (staffUser) {
+        try {
+          const staff = await loadStaffAccess();
+          await staff.signOut();
+          staffUser = null;
+        } catch {
+          toast("Couldn’t log out. Try again.");
+          return;
+        }
+      }
       db().logoutAdmin();
       syncAuthView();
       toast("Logged out of Admin Panel");
     });
 
+  }
+
+  function orderStatusControl(order, label, id = "") {
+    const status = order.status || "Pending";
+    const terminal = status === "Delivered" || status === "Cancelled";
+    const available = terminal || order.statusEmailPending
+      ? [status]
+      : ORDER_STATUSES.slice(ORDER_STATUSES.indexOf(status));
+    return `
+      <select ${id ? `id="${id}"` : ""} class="status-select" data-order-status="${esc(order.no)}"
+        data-status="${esc(status)}" aria-label="${esc(label)}" ${available.length === 1 ? "disabled" : ""}>
+        ${available.map((option) => `<option value="${esc(option)}" ${option === status ? "selected" : ""}>${esc(option)}</option>`).join("")}
+      </select>
+      ${order.statusEmailPending ? `<button type="button" class="admin-btn sm cream" data-retry-status-email="${esc(order.no)}">Retry email</button>` : ""}
+    `;
+  }
+
+  async function requestOrderChange(method, orderNo, status) {
+    if (!staffUser) throw new Error("Log out and sign in with a Firebase staff account to manage order statuses.");
+    const token = await staffUser.getIdToken();
+    const response = await fetch("/api/order-status", {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ orderNo, status }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (result.status) db().cacheOrderStatus(orderNo, result);
+    if (!response.ok) throw new Error(result.error || "Order update is unavailable. Try again.");
+    return result;
+  }
+
+  async function saveOrderStatus(orderNo, status, control) {
+    control.disabled = true;
+    try {
+      const result = await requestOrderChange("POST", orderNo, status);
+      renderAll();
+      if ($("#orderModal").open && $("#modalOrderStatusSelect")?.dataset.orderStatus === orderNo) {
+        openOrderReceiptModal(orderNo);
+      }
+      if (result.notification === "pending") toast("Status saved. Customer email is pending. Use Retry email.");
+      else if (result.notification === "no-email") toast("Status saved. This order has no customer email.");
+      else if (result.notification === "sent") toast(`Order ${orderNo} marked as ${result.status}. Customer email sent.`);
+    } catch (error) {
+      toast(error.message);
+      if (control.dataset.status) control.value = control.dataset.status;
+    } finally {
+      control.disabled = false;
+    }
   }
 
   /* ==================== 2. NAVIGATION TABS ==================== */
@@ -306,11 +416,7 @@
               <td><span class="pill-badge">${esc(o.paymentMethod || "COD")}</span></td>
               <td><strong>${peso(o.total)}</strong></td>
               <td>
-                <select class="status-select" data-order-status="${esc(o.no)}" data-status="${esc(st)}" aria-label="Order status for ${esc(o.no)}">
-                  ${ORDER_STATUSES.map(
-                    (s) => `<option value="${esc(s)}" ${s === st ? "selected" : ""}>${esc(s)}</option>`
-                  ).join("")}
-                </select>
+                ${orderStatusControl(o, "Order status for " + o.no)}
               </td>
               <td>
                 <button type="button" class="admin-btn sm cream" data-view-order="${esc(o.no)}">Receipt</button>
@@ -609,11 +715,7 @@
                 <br><strong>Total: ${peso(o.total)}</strong>
               </td>
               <td class="ord-col-status">
-                <select class="status-select" data-order-status="${esc(o.no)}" data-status="${esc(st)}" aria-label="Status for order ${esc(o.no)}">
-                  ${ORDER_STATUSES.map(
-                    (s) => `<option value="${esc(s)}" ${s === st ? "selected" : ""}>${esc(s)}</option>`
-                  ).join("")}
-                </select>
+                ${orderStatusControl(o, "Status for order " + o.no)}
               </td>
               <td class="ord-col-actions">
                 <select class="admin-select sm order-act-select" data-order-act="${esc(o.no)}" aria-label="Actions for ${esc(o.no)}">
@@ -651,11 +753,7 @@
 
       <div class="field">
         <label for="modalOrderStatusSelect">Fulfillment Status</label>
-        <select id="modalOrderStatusSelect" class="status-select" data-order-status="${esc(o.no)}" data-status="${esc(st)}">
-          ${ORDER_STATUSES.map(
-            (s) => `<option value="${esc(s)}" ${s === st ? "selected" : ""}>${esc(s)}</option>`
-          ).join("")}
-        </select>
+        ${orderStatusControl(o, "Fulfillment Status", "modalOrderStatusSelect")}
       </div>
 
       <div class="receipt-lines">
@@ -695,7 +793,6 @@
     const samples = [
       {
         name: "Maria Clara Santos",
-        email: "maria.santos@cebumail.ph",
         phone: "0917 812 3341",
         address: "Unit 4B IT Park Tower, Lahug, Cebu City",
         paymentMethod: "GCash",
@@ -703,7 +800,6 @@
       },
       {
         name: "Carlo Miguel Reyes",
-        email: "carlo.reyes@example.ph",
         phone: "0918 441 9082",
         address: "88 A.S. Fortuna St., Banilad, Mandaue City",
         paymentMethod: "COD",
@@ -711,7 +807,6 @@
       },
       {
         name: "Leah Mae Dizon",
-        email: "leah.dizon@example.ph",
         phone: "0922 778 1234",
         address: "Punta Engaño Rd., Lapu-Lapu City, Mactan",
         paymentMethod: "Bank Transfer",
@@ -747,7 +842,7 @@
       status: "Pending",
       customer: {
         name: cust.name,
-        email: cust.email,
+        email: "",
         phone: cust.phone,
         address: cust.address,
       },
@@ -1058,12 +1153,7 @@
     document.addEventListener("change", async (e) => {
       const statusSel = e.target.closest("[data-order-status]");
       if (statusSel) {
-        const orderNo = statusSel.dataset.orderStatus;
-        const newStatus = statusSel.value;
-        statusSel.dataset.status = newStatus;
-        await db().updateOrderStatus(orderNo, newStatus);
-        renderAll();
-        toast(`Order ${orderNo} marked as ${newStatus}`);
+        await saveOrderStatus(statusSel.dataset.orderStatus, statusSel.value, statusSel);
         return;
       }
 
@@ -1077,11 +1167,24 @@
         if (action === "view") {
           openOrderReceiptModal(orderNo);
         } else if (action === "delete") {
-          await db().deleteOrder(orderNo);
-          renderAll();
-          toast(`Deleted order ${orderNo}`);
+          try {
+            await requestOrderChange("DELETE", orderNo);
+            db().forgetOrder(orderNo);
+            renderAll();
+            toast(`Deleted order ${orderNo}`);
+          } catch (error) {
+            toast(error.message);
+          }
         }
       }
+    });
+
+    document.addEventListener("click", async (e) => {
+      const retry = e.target.closest("[data-retry-status-email]");
+      if (!retry) return;
+      const orderNo = retry.dataset.retryStatusEmail;
+      const order = db().getOrderByNo(orderNo);
+      if (order?.statusEmailPending) await saveOrderStatus(orderNo, order.status, retry);
     });
 
     // Products filter & actions
@@ -1330,13 +1433,21 @@
     initTabs();
     initDashboardEvents();
     db().subscribe(() => {
-      if (db().isAdminLoggedIn()) {
+      if (staffUser || db().isAdminLoggedIn()) {
         renderAll();
       }
     });
     syncAuthView();
     $("#adminLoginMsg").textContent = "";
     $("#adminLoginSubmit").disabled = false;
+    loadStaffAccess().then(async (staff) => {
+      await staff.auth.authStateReady();
+      const user = staff.auth.currentUser;
+      if (user && await staff.isStaff(user) && staff.auth.currentUser?.uid === user.uid) {
+        staffUser = user;
+        syncAuthView();
+      }
+    }).catch(() => {});
   }
 
   if (document.readyState === "loading") {

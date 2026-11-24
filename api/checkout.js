@@ -332,10 +332,12 @@ function buildEmailText({
   return sections.join("\n");
 }
 
-async function sendEmail(payload) {
+async function sendEmail(payload, idempotencyKey) {
+  const headers = { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" };
+  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(payload),
   });
   if (!r.ok) throw new Error(await r.text());
@@ -511,5 +513,6 @@ handler.DEFAULT_PRODUCTS = DEFAULT_PRODUCTS;
 handler.PRODUCTS = DEFAULT_PRODUCTS;
 handler.buildEmailHtml = buildEmailHtml;
 handler.buildEmailText = buildEmailText;
+handler.sendEmail = sendEmail;
 
 module.exports = handler;

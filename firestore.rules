@@ -263,13 +263,39 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    function isOrderStaff() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/orderStaff/$(request.auth.uid)).data.enabled == true;
+    }
+
+    function canAdvanceOrder(before, after) {
+      return (before == 'Pending' && after in ['Confirmed', 'Packing', 'Out for Delivery', 'Delivered', 'Cancelled']) ||
+        (before == 'Confirmed' && after in ['Packing', 'Out for Delivery', 'Delivered', 'Cancelled']) ||
+        (before == 'Packing' && after in ['Out for Delivery', 'Delivered', 'Cancelled']) ||
+        (before == 'Out for Delivery' && after in ['Delivered', 'Cancelled']);
+    }
+
+    match /orderStaff/{userId} {
+      allow get: if isOwner(userId);
+    }
+
     // Customer orders & fulfillment tracking
     match /orders/{orderNo} {
       allow get, list: if true;
-      allow create: if isValidOrder(request.resource.data);
-      allow update: if isValidOrder(request.resource.data) &&
-        areImmutableFieldsUnchanged(['no']);
-      allow delete: if true;
+      allow create: if isValidOrder(request.resource.data) &&
+        request.resource.data.get('status', 'Pending') == 'Pending';
+      allow update: if request.resource.data == resource.data ||
+        (isOrderStaff() &&
+          ((request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['status', 'updatedAt', 'statusEmailPending']) &&
+            !resource.data.get('statusEmailPending', false) &&
+            request.resource.data.statusEmailPending == true &&
+            request.resource.data.updatedAt is int &&
+            canAdvanceOrder(resource.data.get('status', 'Pending'), request.resource.data.status)) ||
+           (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statusEmailPending']) &&
+            resource.data.get('statusEmailPending', false) &&
+            request.resource.data.statusEmailPending == false)));
+      allow delete: if isOrderStaff() && !resource.data.get('statusEmailPending', false);
     }
 
     // Promotional discount coupons

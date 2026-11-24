@@ -318,6 +318,7 @@
       date: o?.date || now,
       updatedAt: o?.updatedAt || now,
       status: ORDER_STATUSES.includes(o?.status) ? o.status : "Pending",
+      ...(o?.statusEmailPending === true ? { statusEmailPending: true } : {}),
       customer,
       items,
       subtotal,
@@ -498,9 +499,8 @@
 
   const getActiveFirebaseConfig = getSavedFirebaseConfig;
 
-  async function getFirebaseApp(cfg = getSavedFirebaseConfig()) {
+  async function getFirebaseApp(cfg = getSavedFirebaseConfig(), name = "pasalubong_" + cfg.projectId) {
     const { getApps, initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
-    const name = "pasalubong_" + cfg.projectId;
     return getApps().find((app) => app.name === name) || initializeApp(cfg, name);
   }
 
@@ -1002,88 +1002,37 @@
     return clone(record);
   }
 
-  async function updateOrderStatus(orderNo, newStatus) {
-    if (!ORDER_STATUSES.includes(newStatus)) {
-      throw new Error("Invalid order status: " + newStatus);
-    }
-    const clean = String(orderNo || "").trim().toUpperCase();
-    const idx = state.orders.findIndex((o) => String(o.no || "").trim().toUpperCase() === clean);
-    if (idx === -1) return null;
+  function cacheOrderStatus(orderNo, statusUpdate) {
+    const order = state.orders.find((entry) => entry.no === orderNo);
+    if (!order || !ORDER_STATUSES.includes(statusUpdate.status)) return;
+    if (ORDER_STATUSES.indexOf(statusUpdate.status) < ORDER_STATUSES.indexOf(order.status)) return;
+    if (order.status === statusUpdate.status && !order.statusEmailPending && statusUpdate.emailPending) return;
 
-    const prevStatus = state.orders[idx].status;
-    state.orders[idx].status = newStatus;
-    state.orders[idx].updatedAt = Date.now();
-    const updated = state.orders[idx];
-
-    // If order is newly cancelled (and wasn't cancelled before), restore stock
-    if (newStatus === "Cancelled" && prevStatus !== "Cancelled") {
-      for (const item of updated.items || []) {
-        const pIdx = state.products.findIndex((p) => Number(p.id) === Number(item.id));
-        if (pIdx >= 0) {
-          state.products[pIdx].stock = (Number(state.products[pIdx].stock) || 0) + (Number(item.qty) || 0);
-          state.products[pIdx].sold = Math.max(0, (Number(state.products[pIdx].sold) || 0) - (Number(item.qty) || 0));
-        }
-      }
-      writeLocal(STORAGE_KEYS.PRODUCTS, state.products);
-    }
-
+    order.status = statusUpdate.status;
+    order.updatedAt = statusUpdate.updatedAt;
+    if (statusUpdate.emailPending) order.statusEmailPending = true;
+    else delete order.statusEmailPending;
     writeLocal(STORAGE_KEYS.ORDERS, state.orders);
 
-    // Sync customer's per-email local list
-    const email = updated.customer?.email;
-    if (email) {
-      const userOrdersKey = "pc_orders_" + email;
-      const userOrders = readLocal(userOrdersKey, []);
-      const uIdx = userOrders.findIndex((o) => String(o.no || "").trim().toUpperCase() === clean);
-      if (uIdx >= 0) {
-        userOrders[uIdx].status = newStatus;
-        userOrders[uIdx].updatedAt = updated.updatedAt;
-        writeLocal(userOrdersKey, userOrders);
-      }
+    if (order.customer?.email) {
+      const key = "pc_orders_" + order.customer.email;
+      const orders = readLocal(key, []);
+      writeLocal(key, orders.map((entry) => entry.no === orderNo ? order : entry));
     }
-
     broadcast("orders");
-
-    if (firestoreDb && firebaseOps) {
-      try {
-        await firebaseOps.setDoc(firebaseOps.doc(firestoreDb, "orders", updated.no), normalizeOrder(updated));
-        if (newStatus === "Cancelled" && prevStatus !== "Cancelled") {
-          for (const item of updated.items || []) {
-            const p = getProductById(item.id);
-            if (p) {
-              await firebaseOps.setDoc(firebaseOps.doc(firestoreDb, "products", String(p.id)), normalizeProduct(p, Number(p.id) || 1));
-            }
-          }
-        }
-      } catch (e) {}
-    }
-
-    return clone(updated);
   }
 
-  async function deleteOrder(orderNo) {
-    const clean = String(orderNo || "").trim().toUpperCase();
-    const target = state.orders.find((o) => String(o.no || "").trim().toUpperCase() === clean);
-    state.orders = state.orders.filter((o) => String(o.no || "").trim().toUpperCase() !== clean);
+  function forgetOrder(orderNo) {
+    const target = state.orders.find((order) => order.no === orderNo);
+    state.orders = state.orders.filter((order) => order.no !== orderNo);
     writeLocal(STORAGE_KEYS.ORDERS, state.orders);
 
-    if (target && target.customer?.email) {
-      const userOrdersKey = "pc_orders_" + target.customer.email;
-      const userOrders = readLocal(userOrdersKey, []);
-      writeLocal(
-        userOrdersKey,
-        userOrders.filter((o) => String(o.no || "").trim().toUpperCase() !== clean)
-      );
+    if (target?.customer?.email) {
+      const key = "pc_orders_" + target.customer.email;
+      const orders = readLocal(key, []);
+      writeLocal(key, orders.filter((order) => order.no !== orderNo));
     }
-
     broadcast("orders");
-
-    if (firestoreDb && firebaseOps && target) {
-      try {
-        await firebaseOps.deleteDoc(firebaseOps.doc(firestoreDb, "orders", target.no));
-      } catch (e) {}
-    }
-    return true;
   }
 
   // ---------------- Coupons & Pricing Helpers ----------------
@@ -1299,8 +1248,8 @@
     deleteProduct,
     adjustStock,
     recordOrder,
-    updateOrderStatus,
-    deleteOrder,
+    cacheOrderStatus,
+    forgetOrder,
     validateCoupon,
     saveCoupon,
     deleteCoupon,
