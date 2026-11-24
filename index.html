@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <a class="skip" href="#shop">Skip to products</a>
@@ -333,23 +333,27 @@
 
 <!-- Order Tracking Dialog -->
 <dialog id="trackDlg" class="dlg wide track-dlg" aria-labelledby="trackTitle">
-  <button class="icon-btn dlg-x" type="button" data-close aria-label="Close">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-  </button>
-  <span class="mark big" aria-hidden="true"></span>
-  <h2 id="trackTitle">Track your order</h2>
-  <p class="dlg-sub">Enter your order number (e.g. <strong>ORD-...</strong>) to inspect its live delivery status, items, and receipt.</p>
+  <header class="track-header">
+    <span class="mark big" aria-hidden="true"></span>
+    <h2 id="trackTitle">Track your order</h2>
+    <button class="icon-btn dlg-x" type="button" data-close aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </header>
+  <div class="track-content">
+    <p class="dlg-sub">Enter your order number (e.g. <strong>ORD-...</strong>) to inspect its live delivery status, items, and receipt.</p>
 
-  <form id="trackForm" class="track-form" novalidate>
-    <div class="track-bar">
-      <label for="trackInput" class="sr">Order number</label>
-      <input id="trackInput" name="orderNo" type="text" placeholder="e.g. ORD-M8X9K2" autocomplete="off" required>
-      <button id="trackSubmitBtn" class="primary" type="submit">Track order</button>
-    </div>
-    <p id="trackMsg" class="form-msg" role="status" data-msg></p>
-  </form>
+    <form id="trackForm" class="track-form" novalidate>
+      <div class="track-bar">
+        <label for="trackInput" class="sr">Order number</label>
+        <input id="trackInput" name="orderNo" type="text" placeholder="e.g. ORD-M8X9K2" autocomplete="off" required>
+        <button id="trackSubmitBtn" class="primary" type="submit">Track order</button>
+      </div>
+      <p id="trackMsg" class="form-msg" role="status" data-msg></p>
+    </form>
 
-  <div id="trackResult" class="track-result" hidden></div>
+    <div id="trackResult" class="track-result" hidden></div>
+  </div>
 </dialog>
 
 <!-- Log in / Sign up -->

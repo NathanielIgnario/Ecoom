@@ -706,7 +706,7 @@
 /* ---------- Promo Codes Grid ---------- */
 .coupons-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: 20px;
 }
 .coupon-card {
@@ -1015,13 +1015,114 @@
   }
 }
 
+@media (max-width: 900px) {
+  .tab-panel,
+  .admin-card,
+  .admin-search,
+  .field {
+    min-width: 0;
+  }
+  .mobile-records,
+  .mobile-records tbody {
+    display: block;
+  }
+  .mobile-records thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .mobile-records tbody {
+    padding: 12px;
+  }
+  .mobile-records tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    margin-bottom: 12px;
+    padding: 14px;
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    background: var(--paper);
+  }
+  .mobile-records tbody tr:last-child {
+    margin-bottom: 0;
+  }
+  .mobile-records tbody td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    font-size: .9rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .mobile-records td[data-label]::before {
+    content: attr(data-label);
+    content: attr(data-label) / "";
+    display: block;
+    margin-bottom: 3px;
+    color: var(--muted);
+    font-size: .74rem;
+    font-weight: 800;
+  }
+  .mobile-records .record-heading,
+  .mobile-records .record-empty td,
+  .mobile-records td[data-label="Customer"],
+  .mobile-records td[data-label="Stock"],
+  .mobile-records td[data-label="Status"],
+  .mobile-records td[data-label="Actions"] {
+    grid-column: 1 / -1;
+  }
+  .mobile-records .record-heading {
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(18, 36, 42, .18);
+  }
+  .mobile-records.prod-table td[data-label="Status"] {
+    grid-column: auto;
+  }
+  .mobile-records .ord-col-cust,
+  .mobile-records .ord-col-items {
+    max-width: none;
+  }
+  .mobile-records .ord-col-actions {
+    text-align: left;
+  }
+  .mobile-records .prod-cell,
+  .mobile-records .prod-cell-info {
+    min-width: 0;
+  }
+  .mobile-records .prod-cell-info small,
+  .mobile-records .pill-badge {
+    white-space: normal;
+  }
+  .mobile-records .row-actions {
+    flex-wrap: wrap;
+  }
+  .mobile-records .admin-btn.sm,
+  .mobile-records .status-select,
+  .mobile-records .ord-col-status .status-select,
+  .mobile-records .order-act-select {
+    min-height: 44px;
+  }
+  .mobile-records .status-select,
+  .mobile-records .order-act-select {
+    max-width: 100%;
+  }
+  .mobile-records .stock-stepper button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 @media (max-width: 760px) {
   .form-row-2,
   .form-row-3,
   .form-row-4,
   .img-picker-box,
   .receipt-meta-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .img-preview-frame {
     max-width: 160px;
@@ -1030,6 +1131,28 @@
     overflow-x: auto;
     flex-wrap: nowrap;
     padding-bottom: 4px;
+  }
+  .admin-header {
+    position: relative;
+  }
+  .coupon-top,
+  .coupon-foot,
+  .coupon-foot .row-actions {
+    flex-wrap: wrap;
+  }
+  .coupon-code-pill,
+  .coupon-body,
+  .receipt-box,
+  .admin-dlg h2 {
+    overflow-wrap: anywhere;
+  }
+  .admin-dlg .field input,
+  .admin-dlg .field textarea {
+    min-width: 0;
+    width: 100%;
+  }
+  .admin-dlg .dlg-actions {
+    flex-wrap: wrap;
   }
 }
 
@@ -1048,6 +1171,35 @@
   }
   .admin-header {
     padding: 10px var(--pad);
+  }
+  .admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    gap: 8px;
+  }
+  .admin-tab {
+    min-width: 0;
+    gap: 5px;
+    padding: 0 8px;
+    font-size: .86rem;
+  }
+  .admin-tab svg,
+  .admin-tab .tab-count {
+    flex-shrink: 0;
+  }
+  .admin-tab .tab-count {
+    padding-inline: 5px;
+  }
+  .admin-main {
+    padding-top: 20px;
+    padding-bottom: 42px;
+  }
+  .tab-panel {
+    gap: 18px;
+  }
+  .admin-search {
+    flex-basis: 100%;
   }
   .admin-card {
     padding: 16px;

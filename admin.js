@@ -405,26 +405,26 @@
             const itemCount = (o.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0);
             const st = o.status || "Pending";
             return `
-            <tr>
-              <td><strong>${esc(o.no)}</strong></td>
-              <td><small>${esc(formatDate(o.date))}</small></td>
-              <td>
+            <tr role="row">
+              <td role="cell" class="record-heading"><strong>${esc(o.no)}</strong></td>
+              <td role="cell" data-label="Date"><small>${esc(formatDate(o.date))}</small></td>
+              <td role="cell" data-label="Customer">
                 <strong>${esc(cust.name)}</strong>
                 <br><small class="hint">${esc(cust.email)}</small>
               </td>
-              <td>${itemCount} ${itemCount === 1 ? "item" : "items"}</td>
-              <td><span class="pill-badge">${esc(o.paymentMethod || "COD")}</span></td>
-              <td><strong>${peso(o.total)}</strong></td>
-              <td>
+              <td role="cell" data-label="Items">${itemCount} ${itemCount === 1 ? "item" : "items"}</td>
+              <td role="cell" data-label="Payment"><span class="pill-badge">${esc(o.paymentMethod || "COD")}</span></td>
+              <td role="cell" data-label="Total"><strong>${peso(o.total)}</strong></td>
+              <td role="cell" data-label="Status">
                 ${orderStatusControl(o, "Order status for " + o.no)}
               </td>
-              <td>
+              <td role="cell" data-label="Action">
                 <button type="button" class="admin-btn sm cream" data-view-order="${esc(o.no)}">Receipt</button>
               </td>
             </tr>`;
           })
           .join("")
-      : `<tr><td colspan="8" style="text-align:center;padding:28px;">No orders yet. Click <strong>+ Generate Sample Order</strong> above to test order workflows!</td></tr>`;
+      : `<tr role="row" class="record-empty"><td role="cell" colspan="8" style="text-align:center;padding:28px;">No orders yet. Click <strong>+ Generate Sample Order</strong> above to test order workflows!</td></tr>`;
   }
 
   /* ==================== 5. TAB 2: PRODUCTS & INVENTORY ==================== */
@@ -505,8 +505,8 @@
             const stockClass = st <= 0 ? "out" : st <= lowThreshold ? "low" : "";
             const isActive = p.active !== false;
             return `
-            <tr>
-              <td>
+            <tr role="row">
+              <td role="cell" class="record-heading">
                 <div class="prod-cell">
                   <img class="prod-thumb ${p.cover ? "cover" : ""}" src="${esc(p.img)}" alt="${esc(p.name)}">
                   <div class="prod-cell-info">
@@ -516,24 +516,24 @@
                   </div>
                 </div>
               </td>
-              <td><code>${esc(p.sku || `SKU-00${p.id}`)}</code></td>
-              <td><span class="pill-badge">${esc(p.cat)}</span></td>
-              <td>
+              <td role="cell" data-label="SKU"><code>${esc(p.sku || `SKU-00${p.id}`)}</code></td>
+              <td role="cell" data-label="Category"><span class="pill-badge">${esc(p.cat)}</span></td>
+              <td role="cell" data-label="Price">
                 <strong>${peso(p.price)}</strong>
                 ${p.comparePrice && Number(p.comparePrice) > Number(p.price) ? `<span class="compare-strike">${peso(p.comparePrice)}</span>` : ""}
               </td>
-              <td>
+              <td role="cell" data-label="Stock">
                 <div class="stock-stepper ${stockClass}">
                   <button type="button" data-stock-adj="-1" data-id="${p.id}" aria-label="Decrease stock for ${esc(p.name)}">−</button>
                   <span>${st}</span>
                   <button type="button" data-stock-adj="1" data-id="${p.id}" aria-label="Increase stock for ${esc(p.name)}">+</button>
                 </div>
               </td>
-              <td><strong>${Number(p.sold) || 0}</strong></td>
-              <td>
+              <td role="cell" data-label="Sold"><strong>${Number(p.sold) || 0}</strong></td>
+              <td role="cell" data-label="Status">
                 <span class="pill-badge ${isActive ? "leaf" : "muted"}">${isActive ? "Active" : "Hidden"}</span>
               </td>
-              <td>
+              <td role="cell" data-label="Actions">
                 <div class="row-actions">
                   <button type="button" class="admin-btn sm cream" data-edit-prod="${p.id}">Edit</button>
                   <button type="button" class="admin-btn sm danger" data-del-prod="${p.id}">Delete</button>
@@ -542,7 +542,7 @@
             </tr>`;
           })
           .join("")
-      : `<tr><td colspan="8" style="text-align:center;padding:30px;">No matching products found.</td></tr>`;
+      : `<tr role="row" class="record-empty"><td role="cell" colspan="8" style="text-align:center;padding:30px;">No matching products found.</td></tr>`;
   }
 
   function initPresetGallery() {
@@ -695,29 +695,29 @@
               .map((i) => `${esc(i.name)} × ${i.qty}`)
               .join("<br>");
             return `
-            <tr>
-              <td class="ord-col-no">
+            <tr role="row">
+              <td role="cell" class="record-heading ord-col-no">
                 <strong>${esc(o.no)}</strong>
                 <br><small class="hint">${esc(formatDate(o.date))}</small>
               </td>
-              <td class="ord-col-cust">
+              <td role="cell" data-label="Customer" class="ord-col-cust">
                 <strong>${esc(cust.name)}</strong>
                 <br><small>${esc(cust.email)} · ${esc(cust.phone)}</small>
                 <br><small class="hint">${esc(cust.address)}</small>
                 ${o.notes ? `<br><small class="pill-badge sun">Note: ${esc(o.notes)}</small>` : ""}
               </td>
-              <td class="ord-col-pay"><span class="pill-badge">${esc(o.paymentMethod || "COD")}</span></td>
-              <td class="ord-col-items"><small>${itemsSummary || "—"}</small></td>
-              <td class="ord-col-total">
+              <td role="cell" data-label="Payment" class="ord-col-pay"><span class="pill-badge">${esc(o.paymentMethod || "COD")}</span></td>
+              <td role="cell" data-label="Items" class="ord-col-items"><small>${itemsSummary || "—"}</small></td>
+              <td role="cell" data-label="Breakdown and total" class="ord-col-total">
                 <small>Sub: ${peso(o.subtotal ?? o.total)}</small>
                 ${o.discount ? `<br><small style="color:var(--leaf)">Disc (${esc(o.couponCode || "PROMO")}): −${peso(o.discount)}</small>` : ""}
                 <br><small>Deliv: ${Number(o.deliveryFee) === 0 ? "Free" : peso(o.deliveryFee)}</small>
                 <br><strong>Total: ${peso(o.total)}</strong>
               </td>
-              <td class="ord-col-status">
+              <td role="cell" data-label="Status" class="ord-col-status">
                 ${orderStatusControl(o, "Status for order " + o.no)}
               </td>
-              <td class="ord-col-actions">
+              <td role="cell" data-label="Actions" class="ord-col-actions">
                 <select class="admin-select sm order-act-select" data-order-act="${esc(o.no)}" aria-label="Actions for ${esc(o.no)}">
                   <option value="">Action ▾</option>
                   <option value="view">📄 View Receipt</option>
@@ -727,7 +727,7 @@
             </tr>`;
           })
           .join("")
-      : `<tr><td colspan="7" style="text-align:center;padding:30px;">No matching orders found.</td></tr>`;
+      : `<tr role="row" class="record-empty"><td role="cell" colspan="7" style="text-align:center;padding:30px;">No matching orders found.</td></tr>`;
   }
 
   function openOrderReceiptModal(orderNo) {

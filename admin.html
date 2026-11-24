@@ -11,8 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin.css?v=2">
+<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="admin.css?v=3">
 </head>
 <body class="admin-body">
 
@@ -198,20 +198,20 @@
           <button type="button" id="viewAllOrdersBtn" class="admin-btn sm cream">View All Orders →</button>
         </div>
         <div class="table-wrap">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Order #</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Items</th>
-                <th>Payment</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Action</th>
+          <table class="admin-table mobile-records" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader" scope="col">Order #</th>
+                <th role="columnheader" scope="col">Date</th>
+                <th role="columnheader" scope="col">Customer</th>
+                <th role="columnheader" scope="col">Items</th>
+                <th role="columnheader" scope="col">Payment</th>
+                <th role="columnheader" scope="col">Total</th>
+                <th role="columnheader" scope="col">Status</th>
+                <th role="columnheader" scope="col">Action</th>
               </tr>
             </thead>
-            <tbody id="recentOrdersBody"></tbody>
+            <tbody role="rowgroup" id="recentOrdersBody"></tbody>
           </table>
         </div>
       </div>
@@ -261,20 +261,20 @@
       <!-- Products Table -->
       <div class="admin-card flush">
         <div class="table-wrap">
-          <table class="admin-table prod-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Stock Stepper</th>
-                <th>Sold</th>
-                <th>Status</th>
-                <th>Actions</th>
+          <table class="admin-table mobile-records prod-table" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader" scope="col">Product</th>
+                <th role="columnheader" scope="col">SKU</th>
+                <th role="columnheader" scope="col">Category</th>
+                <th role="columnheader" scope="col">Price</th>
+                <th role="columnheader" scope="col">Stock Stepper</th>
+                <th role="columnheader" scope="col">Sold</th>
+                <th role="columnheader" scope="col">Status</th>
+                <th role="columnheader" scope="col">Actions</th>
               </tr>
             </thead>
-            <tbody id="prodTableBody"></tbody>
+            <tbody role="rowgroup" id="prodTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -305,19 +305,19 @@
 
       <div class="admin-card flush">
         <div class="table-wrap">
-          <table class="admin-table orders-table">
-            <thead>
-              <tr>
-                <th>Order # &amp; Date</th>
-                <th>Customer &amp; Address</th>
-                <th>Payment</th>
-                <th>Items</th>
-                <th>Breakdown &amp; Total</th>
-                <th>Status</th>
-                <th>Actions</th>
+          <table class="admin-table mobile-records orders-table" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader" scope="col">Order # &amp; Date</th>
+                <th role="columnheader" scope="col">Customer &amp; Address</th>
+                <th role="columnheader" scope="col">Payment</th>
+                <th role="columnheader" scope="col">Items</th>
+                <th role="columnheader" scope="col">Breakdown &amp; Total</th>
+                <th role="columnheader" scope="col">Status</th>
+                <th role="columnheader" scope="col">Actions</th>
               </tr>
             </thead>
-            <tbody id="ordersTableBody"></tbody>
+            <tbody role="rowgroup" id="ordersTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -536,6 +536,6 @@
 
 <script src="firebase-config.js"></script>
 <script src="db.js?v=4"></script>
-<script src="admin.js?v=5"></script>
+<script src="admin.js?v=6"></script>
 </body>
 </html>

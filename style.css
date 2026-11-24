@@ -420,7 +420,7 @@ textarea{resize:vertical}
 @media (max-width:960px){
   .hero-in{grid-template-columns:1fr}
   .collage{height:clamp(280px,66vw,420px);max-width:500px;width:100%;margin:0 auto}
-  .acct-grid,.qv-grid,.track-cols{grid-template-columns:1fr}
+  .acct-grid,.qv-grid,.track-cols{grid-template-columns:minmax(0,1fr)}
   .foot-grid{grid-template-columns:1fr 1fr}
   .foot-grid>div:first-child{grid-column:1/-1}
 }
@@ -446,7 +446,9 @@ textarea{resize:vertical}
   .chips{width:100%;gap:8px}
   .tools-right{width:100%}
   .search{flex:1;min-width:180px}.search input{width:100%}
-  .track-steps{grid-template-columns:1fr 1fr;gap:8px}
+  .track-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .track-card{grid-template-columns:minmax(0,1fr)}
+  .track-card-head,.track-panel,.track-item,.track-summary{overflow-wrap:anywhere}
   .mini-cart{display:flex;bottom:calc(16px + env(safe-area-inset-bottom, 0px))}
   .foot{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
   .toast{bottom:calc(92px + env(safe-area-inset-bottom, 0px))}
@@ -506,6 +508,7 @@ textarea{resize:vertical}
   .cat-tag,.sold-tag{font-size:.64rem}
   .meta h3{font-size:.96rem;line-height:1.2;margin-bottom:8px;overflow-wrap:anywhere}
   .meta p{display:none}
+  .price-row{flex-wrap:wrap;gap:4px 8px}
   .price{font-size:.98rem;padding:2px 10px;border-radius:9px}
   .compare-price{font-size:.78rem}
   .drawer-head{padding:14px 16px}
@@ -516,10 +519,25 @@ textarea{resize:vertical}
   .row-info{overflow-wrap:anywhere}
   .row .stepper button,.row .rm{min-height:44px}
   #checkoutForm{padding:16px;border-radius:18px}
-  .pay-grid{grid-template-columns:1fr}
+  .pay-grid{grid-template-columns:minmax(0,1fr)}
   .track-bar{flex-direction:column}
-  .track-steps{grid-template-columns:1fr}
+  .track-steps{grid-template-columns:minmax(0,1fr);gap:6px}
+  .track-step{min-height:42px;flex-direction:row;text-align:left;padding:5px 8px;gap:8px}
+  .track-step .step-dot{flex:none}
+  .track-card{padding:12px;gap:14px;border-radius:16px}
+  .track-panel{padding:12px}
+  .track-item span:last-child,.track-summary>div span:last-child{flex:none}
   .dlg{width:calc(100vw - 20px);max-height:calc(100dvh - 20px);padding:24px 16px 20px;border-radius:22px}
+  .dlg .icon-btn,.drawer-head .icon-btn{width:44px;height:44px;flex:none}
+  .track-dlg{padding:0}
+  .track-header{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:2px solid var(--ink);background:var(--cream)}
+  .track-header .mark.big{flex:none;width:26px;height:26px;box-shadow:inset -6px -6px 0 var(--sea)}
+  .track-header h2{flex:1;margin:0;font-size:1.25rem}
+  .track-header .dlg-x{position:static}
+  .track-content{min-width:0;padding:14px 12px 20px}
+  .qv-pic{width:min(100%,230px);justify-self:center}
+  .qv-body{min-width:0;padding-right:0;overflow-wrap:anywhere}
+  .acct-grid>form,.orders-box{min-width:0;padding:14px}
   .avatar.lg{width:46px;height:46px;font-size:1.2rem}
   .acct-head h2{font-size:1.45rem}
   .acct-head .dlg-sub{font-size:.84rem}
