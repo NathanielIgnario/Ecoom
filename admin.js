@@ -622,7 +622,6 @@
                 <select class="admin-select sm order-act-select" data-order-act="${esc(o.no)}" aria-label="Actions for ${esc(o.no)}">
                   <option value="">Action ▾</option>
                   <option value="view">📄 View Receipt</option>
-                  <option value="print">🖨️ Print Receipt</option>
                   <option value="delete">🗑️ Delete Order</option>
                 </select>
               </td>
@@ -1462,7 +1461,6 @@
     $("#exportFullExcelBtn").addEventListener("click", exportFullExcelWorkbook);
     $("#exportOrdersCsvBtn").addEventListener("click", () => exportOrdersCsv());
     $("#exportInventoryCsvBtn").addEventListener("click", () => exportInventoryCsv());
-    $("#printReportBtn").addEventListener("click", () => window.print());
 
     // Delegated clicks in Overview
     $("#tab-overview").addEventListener("click", async (e) => {
@@ -1508,9 +1506,6 @@
 
         if (action === "view") {
           openOrderReceiptModal(orderNo);
-        } else if (action === "print") {
-          openOrderReceiptModal(orderNo);
-          setTimeout(() => window.print(), 120);
         } else if (action === "delete") {
           await db().deleteOrder(orderNo);
           renderAll();
@@ -1661,7 +1656,6 @@
 
     $("#closeOrderModal").addEventListener("click", () => $("#orderModal").close());
     $("#closeOrderModalBtn").addEventListener("click", () => $("#orderModal").close());
-    $("#printOrderModalBtn").addEventListener("click", () => window.print());
 
     // Promo Codes events
     $("#addCouponBtn").addEventListener("click", () => openCouponModal(null));
