@@ -498,6 +498,12 @@
 
   const getActiveFirebaseConfig = getSavedFirebaseConfig;
 
+  async function getFirebaseApp(cfg = getSavedFirebaseConfig()) {
+    const { getApps, initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
+    const name = "pasalubong_" + cfg.projectId;
+    return getApps().find((app) => app.name === name) || initializeApp(cfg, name);
+  }
+
   function cleanupFirestoreListeners() {
     unsubscribes.forEach((u) => {
       try {
@@ -528,18 +534,13 @@
     notifyListeners("firebase");
 
     try {
-      const appMod = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js");
-      const fsMod = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js");
+      const [app, fsMod] = await Promise.all([
+        getFirebaseApp(cfg),
+        import("https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js")
+      ]);
 
       if (typeof fsMod.setLogLevel === "function") {
         fsMod.setLogLevel("silent");
-      }
-
-      const existingApps = appMod.getApps ? appMod.getApps() : [];
-      const appName = "pasalubong_" + cfg.projectId;
-      let app = existingApps.find((a) => a.name === appName);
-      if (!app) {
-        app = appMod.initializeApp(cfg, appName);
       }
 
       // Softly initialize Firebase Analytics if measurementId is present in browser context
@@ -1287,6 +1288,7 @@
     getSettings,
     getSavedFirebaseConfig,
     getActiveFirebaseConfig,
+    getFirebaseApp,
     subscribe,
     initFirebase,
     connectFirebaseConfig,

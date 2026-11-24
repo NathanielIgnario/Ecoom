@@ -235,6 +235,25 @@ service cloud.firestore {
     // Collection Rules
     // ===============================================================
 
+    match /users/{userId} {
+      function validProfile() {
+        return hasRequiredFields(['email', 'name', 'phone', 'address', 'createdAt']) &&
+          hasOnlyAllowedFields(['email', 'name', 'phone', 'address', 'createdAt']) &&
+          validStringLength('email', 1, 320) &&
+          request.resource.data.email == request.auth.token.email &&
+          validStringLength('name', 1, 200) &&
+          validStringLength('phone', 0, 100) &&
+          validStringLength('address', 0, 1000);
+      }
+
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && validProfile() &&
+        request.resource.data.createdAt == request.time;
+      allow update: if isOwner(userId) && validProfile() &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['name', 'phone', 'address']);
+    }
+
     // Products catalog & inventory
     match /products/{productId} {
       allow get, list: if true;

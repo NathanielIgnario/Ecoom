@@ -145,7 +145,7 @@
         <article>
           <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg></span>
           <h3>Your own account</h3>
-          <p>Save your delivery details and see your past orders on this device.</p>
+          <p>Save your delivery details and see your past orders on any device.</p>
         </article>
       </div>
     </div>
@@ -366,7 +366,7 @@
     <button type="button" role="tab" id="tabSignup" aria-selected="false" aria-controls="signupForm">Create account</button>
   </div>
 
-  <form id="loginForm" novalidate role="tabpanel" aria-labelledby="tabLogin">
+  <form id="loginForm" method="dialog" novalidate role="tabpanel" aria-labelledby="tabLogin">
     <div class="field">
       <label for="l-email">Email</label>
       <input id="l-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@email.com">
@@ -384,7 +384,7 @@
     <p class="form-msg" role="status" data-msg></p>
   </form>
 
-  <form id="signupForm" novalidate hidden role="tabpanel" aria-labelledby="tabSignup">
+  <form id="signupForm" method="dialog" novalidate hidden role="tabpanel" aria-labelledby="tabSignup">
     <div class="field">
       <label for="s-name">Full name</label>
       <input id="s-name" name="name" autocomplete="name" placeholder="Juan Dela Cruz">
@@ -453,7 +453,7 @@
 </dialog>
 
 <script src="firebase-config.js"></script>
-<script src="db.js"></script>
-<script src="script.js?v=3"></script>
+<script src="db.js?v=3"></script>
+<script src="script.js?v=4"></script>
 </body>
 </html>

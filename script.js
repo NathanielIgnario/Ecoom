@@ -768,33 +768,100 @@ VALIDATORS.signupForm = (d) => {
   else if (!reEmail.test(d.email.trim())) e.email = "Enter a valid email, like you@email.com.";
   if (!d.password) e.password = "Create a password.";
   else if (d.password.length < 8) e.password = "Use at least 8 characters.";
+  if (d.name.trim().length > 200) e.name = "Use 200 characters or fewer.";
   return e;
 };
 VALIDATORS.profileForm = (d) => {
   const e = {};
   validName(d, e);
   validPhone(d, e, false);
+  if (d.name.trim().length > 200) e.name = "Use 200 characters or fewer.";
+  if (d.phone.trim().length > 100) e.phone = "Use 100 characters or fewer.";
+  if (d.address.trim().length > 1000) e.address = "Use 1,000 characters or fewer.";
   return e;
 };
 
-/* ---------- Accounts (stored in this browser) ---------- */
+/* ---------- Customer accounts ---------- */
 const enc = new TextEncoder();
 const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 const fromHex = (h) => Uint8Array.from(h.match(/../g).map((x) => parseInt(x, 16)));
-async function hashPw(pw, saltHex) {
-  if (!window.crypto || !crypto.subtle) throw new Error("Accounts need a secure connection (https).");
-  const salt = saltHex ? fromHex(saltHex) : crypto.getRandomValues(new Uint8Array(16));
-  const key = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveBits"]);
+async function getLegacyProfile(email, password) {
+  const profile = read("pc_users", {})[email];
+  if (!/^[a-f\d]{32}$/i.test(profile?.salt || "") || typeof profile.hash !== "string") return null;
+  const salt = fromHex(profile.salt);
+  const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 120000, hash: "SHA-256" }, key, 256);
-  return { salt: toHex(salt), hash: toHex(bits) };
+  return toHex(bits) === profile.hash ? profile : null;
 }
 
-const getUsers = () => read("pc_users", {});
-const setUsers = (u) => write("pc_users", u);
-const currentEmail = () => read("pc_session", null);
-const currentUser = () => { const e = currentEmail(); return e ? getUsers()[e] || null : null; };
+let customerAccountsPromise;
+let customerSession = null;
+let accountActionPending = false;
+const currentEmail = () => customerSession?.user.email || null;
+const currentUser = () => customerSession?.profile || null;
 const ordersKey = (email) => "pc_orders_" + email;
 const initial = (name) => (name.trim()[0] || "?").toUpperCase();
+
+function setCustomerSession(user, profile) {
+  if (customerSession && customerSession.user.uid !== user?.uid) {
+    $("#acctDlg").close();
+    $("#checkoutForm").reset();
+    updatePaymentHint();
+  }
+  customerSession = user ? { user, profile } : null;
+  renderAuthUI();
+  prefillCheckout();
+}
+
+function loadCustomerAccounts() {
+  if (!customerAccountsPromise) {
+    customerAccountsPromise = (async () => {
+      const [app, { connectCustomerAccounts }] = await Promise.all([
+        getDB().getFirebaseApp(),
+        import("./customer-accounts.js?v=1")
+      ]);
+      const accounts = connectCustomerAccounts(app);
+      accounts.subscribe(async (user) => {
+        if (accountActionPending) return;
+        if (!user) {
+          setCustomerSession(null);
+          return;
+        }
+        if (customerSession && customerSession.user.uid !== user.uid) {
+          setCustomerSession(null);
+        }
+        try {
+          const profile = await accounts.getOrCreateProfile(user);
+          if (!accountActionPending && accounts.currentUser()?.uid === user.uid) {
+            setCustomerSession(user, profile);
+          }
+        } catch (err) {
+          console.warn("Could not load the customer profile", err);
+        }
+      });
+      return accounts;
+    })().catch((err) => {
+      customerAccountsPromise = null;
+      throw err;
+    });
+  }
+  return customerAccountsPromise;
+}
+
+const invalidCredentials = new Set([
+  "auth/invalid-credential", "auth/invalid-login-credentials", "auth/user-not-found", "auth/wrong-password"
+]);
+
+function customerAccountError(err) {
+  if (invalidCredentials.has(err.code)) return "Incorrect email or password.";
+  if (err.code === "auth/email-already-in-use") return "An account with this email already exists. Try logging in.";
+  if (err.code === "auth/weak-password" || err.code === "auth/password-does-not-meet-requirements") {
+    return "Choose a stronger password and try again.";
+  }
+  if (err.code === "auth/invalid-email") return "Enter a valid email address.";
+  if (err.code === "auth/too-many-requests") return "Too many attempts. Wait a moment and try again.";
+  return "We couldn’t connect to your account. Please try again.";
+}
 
 function renderAuthUI() {
   const u = currentUser();
@@ -836,7 +903,7 @@ function setAuthTab(tab) {
   $("#loginForm").hidden = !login;
   $("#signupForm").hidden = login;
   $("#authTitle").textContent = login ? "Welcome back" : "Create your account";
-  $("#authSub").textContent = login ? "Log in to see your orders and check out faster." : "Save your details and track your orders on this device.";
+  $("#authSub").textContent = login ? "Log in to see your orders and check out faster." : "Save your delivery details and find your orders on any device.";
 }
 function openAuth(tab = "login") {
   if (currentUser()) return openAccount();
@@ -855,43 +922,60 @@ document.addEventListener("click", (e) => {
   if (b) openAuth(b.dataset.openAuth);
 });
 
-function startSession(email) { write("pc_session", email); renderAuthUI(); }
-
-$("#signupForm").addEventListener("submit", async (e) => {
+async function submitCustomerAccount(e) {
   e.preventDefault();
+  if (accountActionPending) return;
   const f = e.target, d = formData(f), btn = f.querySelector(".primary");
-  const errs = VALIDATORS.signupForm(d); setErrors(f, errs); setMsg(f, "");
+  const signup = f.id === "signupForm";
+  const errs = VALIDATORS[f.id](d); setErrors(f, errs); setMsg(f, "");
   const bad = Object.keys(errs)[0]; if (bad) { f.elements[bad].focus(); return; }
-  const email = d.email.trim().toLowerCase(), users = getUsers();
-  if (users[email]) {
-    setErrors(f, { email: "An account with this email already exists. Try logging in." });
-    f.elements.email.focus(); return;
+  const email = d.email.trim().toLowerCase();
+  if (signup && Object.hasOwn(read("pc_users", {}), email)) {
+    setMsg(f, "This email already has an account on this browser. Log in to move it online.", "err");
+    return;
   }
+  accountActionPending = true;
   btn.disabled = true; btn.classList.add("loading");
+  let accounts;
+  let user;
+  let legacy;
   try {
-    const { salt, hash } = await hashPw(d.password);
-    users[email] = { name: d.name.trim(), salt, hash, phone: "", address: "", created: Date.now() };
-    setUsers(users); startSession(email);
-    f.reset(); $("#authDlg").close(); toast(`Welcome, ${d.name.trim().split(/\s+/)[0]}!`);
-  } catch (err) { setMsg(f, err.message, "err"); }
-  finally { btn.disabled = false; btn.classList.remove("loading"); }
-});
-
-$("#loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const f = e.target, d = formData(f), btn = f.querySelector(".primary");
-  const errs = VALIDATORS.loginForm(d); setErrors(f, errs); setMsg(f, "");
-  const bad = Object.keys(errs)[0]; if (bad) { f.elements[bad].focus(); return; }
-  const email = d.email.trim().toLowerCase(), u = getUsers()[email];
-  btn.disabled = true; btn.classList.add("loading");
-  try {
-    const h = u ? await hashPw(d.password, u.salt) : null;
-    if (!u || h.hash !== u.hash) { setMsg(f, "Incorrect email or password.", "err"); return; }
-    startSession(email);
-    f.reset(); $("#authDlg").close(); toast(`Welcome back, ${u.name.trim().split(/\s+/)[0]}!`);
-  } catch (err) { setMsg(f, err.message, "err"); }
-  finally { btn.disabled = false; btn.classList.remove("loading"); }
-});
+    accounts = await loadCustomerAccounts();
+    if (signup) {
+      user = await accounts.create(email, d.password, d.name.trim());
+    } else {
+      legacy = await getLegacyProfile(email, d.password);
+      try {
+        user = await accounts.signIn(email, d.password);
+      } catch (err) {
+        if (!legacy || !invalidCredentials.has(err.code)) throw err;
+        user = await accounts.create(email, d.password, legacy.name);
+      }
+    }
+    const profile = await accounts.getOrCreateProfile(user, signup ? { name: d.name } : legacy || {});
+    if (accounts.currentUser()?.uid !== user.uid) return;
+    setCustomerSession(user, profile);
+    if (legacy) {
+      const users = read("pc_users", {});
+      delete users[email];
+      write("pc_users", users);
+    }
+    write("pc_session", null);
+    f.reset(); $("#authDlg").close();
+    toast(`${signup ? "Welcome" : "Welcome back"}, ${profile.name.trim().split(/\s+/)[0]}!`);
+  } catch (err) {
+    if (user && accounts.currentUser()?.uid === user.uid) await accounts.signOut().catch(() => {});
+    const message = user
+      ? "We couldn’t load your saved profile. Please log in again to retry."
+      : customerAccountError(err);
+    setMsg(f, message, "err");
+  } finally {
+    accountActionPending = false;
+    btn.disabled = false; btn.classList.remove("loading");
+  }
+}
+$("#signupForm").addEventListener("submit", submitCustomerAccount);
+$("#loginForm").addEventListener("submit", submitCustomerAccount);
 
 /* ---------- Order Status & Account Order History ---------- */
 function statusSlug(status) {
@@ -943,20 +1027,50 @@ function openAccount() {
   renderOrders(); openDlg($("#acctDlg"));
 }
 
-$("#profileForm").addEventListener("submit", (e) => {
+async function saveCustomerDetails(session, details) {
+  const accounts = await loadCustomerAccounts();
+  if (accounts.currentUser()?.uid !== session.user.uid) return false;
+  await accounts.updateDetails(session.user, details);
+  if (customerSession?.user.uid === session.user.uid) {
+    Object.assign(customerSession.profile, details);
+    renderAuthUI();
+    return true;
+  }
+  return false;
+}
+
+$("#profileForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (!customerSession) return;
   const f = e.target, d = formData(f);
   const errs = VALIDATORS.profileForm(d); setErrors(f, errs);
   const bad = Object.keys(errs)[0]; if (bad) { f.elements[bad].focus(); return; }
-  const users = getUsers(), email = currentEmail();
-  Object.assign(users[email], { name: d.name.trim(), phone: d.phone.trim(), address: d.address.trim() });
-  setUsers(users); renderAuthUI();
-  $("#acctAvatarLg").textContent = initial(d.name);
-  setMsg(f, "Details saved.", "ok");
+  const btn = f.querySelector(".primary");
+  btn.disabled = true;
+  try {
+    const saved = await saveCustomerDetails(customerSession, {
+      name: d.name.trim(),
+      phone: d.phone.trim(),
+      address: d.address.trim()
+    });
+    if (!saved) return;
+    $("#acctAvatarLg").textContent = initial(d.name);
+    setMsg(f, "Details saved.", "ok");
+  } catch (err) {
+    setMsg(f, "We couldn’t save your details. Please try again.", "err");
+  } finally {
+    btn.disabled = false;
+  }
 });
-$("#logoutBtn").onclick = () => {
-  write("pc_session", null); $("#acctDlg").close(); renderAuthUI();
-  $("#checkoutForm").reset(); updatePaymentHint(); toast("You’ve been logged out");
+$("#logoutBtn").onclick = async () => {
+  try {
+    const accounts = await loadCustomerAccounts();
+    await accounts.signOut();
+    setCustomerSession(null);
+    toast("You’ve been logged out");
+  } catch (err) {
+    toast("We couldn’t log you out. Please try again.");
+  }
 };
 
 /* ---------- Order Tracking Modal (#trackDlg) ---------- */
@@ -1127,6 +1241,7 @@ let checkoutConfirmationTimer;
 $("#checkoutForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   clearTimeout(checkoutConfirmationTimer);
+  const checkoutSession = customerSession;
   const f = e.target, btn = $("#placeBtn");
   const data = formData(f);
   setMsg(f, "");
@@ -1208,20 +1323,17 @@ $("#checkoutForm").addEventListener("submit", async (e) => {
     if (db && typeof db.recordOrder === "function") {
       await db.recordOrder(orderRecord);
     } else {
-      const targetEmail = currentEmail() || payload.email.toLowerCase();
+      const targetEmail = checkoutSession?.user.email || payload.email.toLowerCase();
       const orders = read(ordersKey(targetEmail), []);
       orders.unshift(orderRecord);
       write(ordersKey(targetEmail), orders.slice(0, 50));
     }
 
-    const sessionEmail = currentEmail();
-    if (sessionEmail) {
-      const users = getUsers();
-      if (users[sessionEmail]) {
-        users[sessionEmail].phone = payload.phone;
-        users[sessionEmail].address = payload.address;
-        setUsers(users);
-      }
+    if (checkoutSession) {
+      saveCustomerDetails(checkoutSession, {
+        phone: payload.phone.slice(0, 100),
+        address: payload.address.slice(0, 1000)
+      }).catch((err) => console.warn("Could not save delivery details to the customer profile", err));
     }
 
     const msgEl = $("#msg");
@@ -1281,6 +1393,7 @@ function refreshStorefront() {
 
 refreshStorefront();
 renderAuthUI();
+loadCustomerAccounts().catch((err) => console.warn("Could not connect customer accounts", err));
 
 if (window.PasalubongDB && typeof window.PasalubongDB.subscribe === "function") {
   window.PasalubongDB.subscribe(() => {
