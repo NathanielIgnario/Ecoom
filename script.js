@@ -1123,8 +1123,10 @@ document.addEventListener("click", (e) => {
 });
 
 /* ---------- Checkout ---------- */
+let checkoutConfirmationTimer;
 $("#checkoutForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+  clearTimeout(checkoutConfirmationTimer);
   const f = e.target, btn = $("#placeBtn");
   const data = formData(f);
   setMsg(f, "");
@@ -1238,6 +1240,16 @@ $("#checkoutForm").addEventListener("submit", async (e) => {
     if ($("#promoInput")) $("#promoInput").value = "";
     setErrors(f, {});
     updatePaymentHint();
+    if ($("#drawer").classList.contains("open")) {
+      msgEl.scrollIntoView({ block: "nearest" });
+    }
+    checkoutConfirmationTimer = setTimeout(() => {
+      if (msgEl.contains(document.activeElement) && $("#drawer").classList.contains("open")) {
+        $("#closeCart").focus();
+      }
+      setMsg(f, "");
+      renderCart();
+    }, 2000);
   } catch (err) {
     setMsg(f, err.message + " Your cart is saved, try again.", "err");
     btn.disabled = false;
