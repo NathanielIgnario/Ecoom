@@ -139,9 +139,6 @@
       toast("Logged out of Admin Panel");
     });
 
-    $("#dbStatusBadge").addEventListener("click", () => {
-      switchTab("reports");
-    });
   }
 
   /* ==================== 2. NAVIGATION TABS ==================== */
@@ -151,7 +148,7 @@
       const isMatch = btn.dataset.tab === tabName;
       btn.setAttribute("aria-selected", String(isMatch));
     });
-    ["overview", "products", "orders", "coupons", "reports"].forEach((t) => {
+    ["overview", "products", "orders", "coupons"].forEach((t) => {
       const panel = $(`#tab-${t}`);
       if (panel) panel.hidden = t !== tabName;
     });
@@ -842,168 +839,7 @@
     if (!modal.open) modal.showModal();
   }
 
-  /* ==================== 8. TAB 5: REPORTS & EXCEL EXPORT ==================== */
-  function getFilteredReportOrders() {
-    const orders = db().getOrders();
-    const period = $("#repPeriod") ? $("#repPeriod").value : "all";
-    const statusMode = $("#repStatusFilter") ? $("#repStatusFilter").value : "valid";
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-
-    let minTs = 0;
-    let maxTs = Infinity;
-
-    if (period === "today") {
-      minTs = todayStart;
-    } else if (period === "7d") {
-      minTs = todayStart - 6 * 86400000;
-    } else if (period === "30d") {
-      minTs = todayStart - 29 * 86400000;
-    } else if (period === "month") {
-      minTs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    } else if (period === "custom") {
-      const startVal = $("#repStartDate") ? $("#repStartDate").value : "";
-      const endVal = $("#repEndDate") ? $("#repEndDate").value : "";
-      if (startVal) {
-        const s = new Date(startVal + "T00:00:00");
-        if (!isNaN(s.getTime())) minTs = s.getTime();
-      }
-      if (endVal) {
-        const e = new Date(endVal + "T23:59:59.999");
-        if (!isNaN(e.getTime())) maxTs = e.getTime();
-      }
-    }
-
-    return orders.filter((o) => {
-      const st = o.status || "Pending";
-      if (statusMode === "valid" && st === "Cancelled") return false;
-      if (statusMode !== "valid" && statusMode !== "all" && st !== statusMode) return false;
-
-      const ts = o.date ? new Date(o.date).getTime() : Date.now();
-      if (!isNaN(ts)) {
-        if (ts < minTs || ts > maxTs) return false;
-      }
-      return true;
-    });
-  }
-
-  function renderReports() {
-    const filteredOrders = getFilteredReportOrders();
-    const allProds = db().getProducts(true);
-    const settings = db().getSettings();
-    const lowThreshold = Number(settings.lowStockThreshold ?? 5);
-
-    const totalRev = filteredOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
-    const totalSubtotal = filteredOrders.reduce((s, o) => s + (Number(o.subtotal ?? o.total) || 0), 0);
-    const totalDiscount = filteredOrders.reduce((s, o) => s + (Number(o.discount) || 0), 0);
-    const totalDelivery = filteredOrders.reduce((s, o) => s + (Number(o.deliveryFee) || 0), 0);
-    const totalUnitsOrdered = filteredOrders.reduce(
-      (s, o) => s + (o.items || []).reduce((acc, it) => acc + (Number(it.qty) || 0), 0),
-      0
-    );
-    const avgOrderVal = filteredOrders.length ? Math.round(totalRev / filteredOrders.length) : 0;
-
-    const totalInventoryVal = allProds.reduce(
-      (s, p) => s + (Number(p.price) || 0) * (Number(p.stock) || 0),
-      0
-    );
-    const totalInventoryUnits = allProds.reduce((s, p) => s + (Number(p.stock) || 0), 0);
-    const totalCatalogSold = allProds.reduce((s, p) => s + (Number(p.sold) || 0), 0);
-    const totalCatalogGross = allProds.reduce(
-      (s, p) => s + (Number(p.price) || 0) * (Number(p.sold) || 0),
-      0
-    );
-
-    $("#repKpiRevenue").textContent = peso(totalRev);
-    $("#repKpiRevenueSub").textContent = `Subtotal ${peso(totalSubtotal)} · Delivery ${peso(totalDelivery)}`;
-
-    $("#repKpiOrders").textContent = `${filteredOrders.length} ${filteredOrders.length === 1 ? "Order" : "Orders"}`;
-    $("#repKpiOrdersSub").textContent = `${totalUnitsOrdered.toLocaleString("en-PH")} total units purchased`;
-
-    $("#repKpiAvg").textContent = peso(avgOrderVal);
-    $("#repKpiAvgSub").textContent = `${peso(totalDiscount)} total promo discounts`;
-
-    $("#repKpiInventoryValue").textContent = peso(totalInventoryVal);
-    $("#repKpiInventorySub").textContent = `${totalInventoryUnits.toLocaleString("en-PH")} units across ${allProds.length} products`;
-
-    // Sales & Orders Report Preview Table
-    $("#repOrdersBody").innerHTML = filteredOrders.length
-      ? filteredOrders
-          .map((o) => {
-            const cust = getOrderCustomer(o);
-            const qty = (o.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0);
-            const st = o.status || "Pending";
-            return `
-            <tr>
-              <td><strong>${esc(o.no)}</strong></td>
-              <td><small>${esc(formatDate(o.date))}</small></td>
-              <td>
-                <strong>${esc(cust.name)}</strong>
-                <br><small class="hint">${esc(cust.email)}</small>
-              </td>
-              <td><span class="pill-badge">${esc(o.paymentMethod || "COD")}</span></td>
-              <td><span class="pill-badge">${esc(st)}</span></td>
-              <td>${qty}</td>
-              <td>${peso(o.subtotal ?? o.total)}</td>
-              <td>${o.discount ? "−" + peso(o.discount) : "₱0"}</td>
-              <td>${Number(o.deliveryFee) === 0 ? "Free" : peso(o.deliveryFee)}</td>
-              <td><strong>${peso(o.total)}</strong></td>
-            </tr>`;
-          })
-          .join("")
-      : `<tr><td colspan="10" style="text-align:center;padding:28px;">No orders match the selected report filters.</td></tr>`;
-
-    $("#repOrdersFoot").innerHTML = filteredOrders.length
-      ? `<tr class="report-total-row">
-          <td colspan="5"><strong>GRAND TOTAL (${filteredOrders.length} ${filteredOrders.length === 1 ? "Order" : "Orders"})</strong></td>
-          <td><strong>${totalUnitsOrdered}</strong></td>
-          <td><strong>${peso(totalSubtotal)}</strong></td>
-          <td><strong>−${peso(totalDiscount)}</strong></td>
-          <td><strong>${peso(totalDelivery)}</strong></td>
-          <td><strong>${peso(totalRev)}</strong></td>
-        </tr>`
-      : "";
-
-    // Product Performance & Inventory Valuation Table
-    $("#repProductsBody").innerHTML = allProds.length
-      ? allProds
-          .map((p) => {
-            const price = Number(p.price) || 0;
-            const stock = Number(p.stock) || 0;
-            const sold = Number(p.sold) || 0;
-            const grossRev = price * sold;
-            const stockVal = price * stock;
-            const stockStatus =
-              stock <= 0 ? "Out of Stock" : stock <= lowThreshold ? "Low Stock" : "In Stock";
-            const badgeClass = stock <= 0 ? "coral" : stock <= lowThreshold ? "sun" : "leaf";
-            return `
-            <tr>
-              <td><code>${esc(p.sku || `SKU-00${p.id}`)}</code></td>
-              <td><strong>${esc(p.name)}</strong></td>
-              <td><span class="pill-badge">${esc(p.cat)}</span></td>
-              <td>${peso(price)}</td>
-              <td><strong>${stock}</strong></td>
-              <td><strong>${sold}</strong></td>
-              <td>${peso(grossRev)}</td>
-              <td><strong>${peso(stockVal)}</strong></td>
-              <td><span class="pill-badge ${badgeClass}">${esc(stockStatus)}</span></td>
-            </tr>`;
-          })
-          .join("")
-      : `<tr><td colspan="9" style="text-align:center;padding:28px;">No products in catalog.</td></tr>`;
-
-    $("#repProductsFoot").innerHTML = allProds.length
-      ? `<tr class="report-total-row">
-          <td colspan="4"><strong>CATALOG TOTALS (${allProds.length} Products)</strong></td>
-          <td><strong>${totalInventoryUnits}</strong></td>
-          <td><strong>${totalCatalogSold}</strong></td>
-          <td><strong>${peso(totalCatalogGross)}</strong></td>
-          <td><strong>${peso(totalInventoryVal)}</strong></td>
-          <td></td>
-        </tr>`
-      : "";
-  }
-
+  /* ==================== 8. CSV EXPORT ==================== */
   function csvCell(val) {
     const str = String(val ?? "").replace(/\r?\n/g, " ");
     if (/[",]/.test(str)) {
@@ -1024,8 +860,8 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  function exportOrdersCsv(ordersList) {
-    const list = ordersList || getFilteredReportOrders();
+  function exportOrdersCsv() {
+    const list = db().getOrders();
     const headers = [
       "Order No",
       "Date",
@@ -1186,258 +1022,6 @@
     toast(`Exported ${allProds.length} products to Excel CSV!`);
   }
 
-  function xmlEsc(s) {
-    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&apos;",
-    }[c]));
-  }
-
-  function exportFullExcelWorkbook() {
-    const orders = getFilteredReportOrders();
-    const allProds = db().getProducts(true);
-    const settings = db().getSettings();
-    const lowThreshold = Number(settings.lowStockThreshold ?? 5);
-    const stamp = new Date().toISOString().slice(0, 10);
-
-    const totalUnitsOrdered = orders.reduce(
-      (s, o) => s + (o.items || []).reduce((acc, i) => acc + (Number(i.qty) || 0), 0),
-      0
-    );
-    const totalSub = orders.reduce((s, o) => s + (Number(o.subtotal ?? o.total) || 0), 0);
-    const totalDisc = orders.reduce((s, o) => s + (Number(o.discount) || 0), 0);
-    const totalDeliv = orders.reduce((s, o) => s + (Number(o.deliveryFee) || 0), 0);
-    const totalGrand = orders.reduce((s, o) => s + (Number(o.total) || 0), 0);
-
-    const totalStock = allProds.reduce((s, p) => s + (Number(p.stock) || 0), 0);
-    const totalSold = allProds.reduce((s, p) => s + (Number(p.sold) || 0), 0);
-    const totalGross = allProds.reduce(
-      (s, p) => s + (Number(p.price) || 0) * (Number(p.sold) || 0),
-      0
-    );
-    const totalVal = allProds.reduce(
-      (s, p) => s + (Number(p.price) || 0) * (Number(p.stock) || 0),
-      0
-    );
-
-    // Sheet 1: Sales & Orders rows
-    const ordersXmlRows = orders
-      .map((o) => {
-        const cust = getOrderCustomer(o);
-        const itemsSummary = (o.items || []).map((i) => `${i.name} x${i.qty}`).join("; ");
-        const itemsQty = (o.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0);
-        return `<Row>
-          <Cell><Data ss:Type="String">${xmlEsc(o.no)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(formatIsoDate(o.date))}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(cust.name)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(cust.email)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(cust.phone)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(cust.address)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(o.paymentMethod || "COD")}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(o.status || "Pending")}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(itemsSummary)}</Data></Cell>
-          <Cell><Data ss:Type="Number">${itemsQty}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${Number(o.subtotal ?? o.total) || 0}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${Number(o.discount) || 0}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(o.couponCode || "")}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${Number(o.deliveryFee) || 0}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${Number(o.total) || 0}</Data></Cell>
-        </Row>`;
-      })
-      .join("\n");
-
-    // Sheet 2: Order Line Items rows
-    let lineItemTotalQty = 0;
-    let lineItemTotalAmount = 0;
-    const lineItemsXmlRows = orders
-      .flatMap((o) => {
-        const cust = getOrderCustomer(o);
-        return (o.items || []).map((it) => {
-          const qty = Number(it.qty) || 1;
-          const price = Number(it.price) || 0;
-          const lineTotal = qty * price;
-          lineItemTotalQty += qty;
-          lineItemTotalAmount += lineTotal;
-          return `<Row>
-            <Cell><Data ss:Type="String">${xmlEsc(o.no)}</Data></Cell>
-            <Cell><Data ss:Type="String">${xmlEsc(formatIsoDate(o.date))}</Data></Cell>
-            <Cell><Data ss:Type="String">${xmlEsc(cust.name)}</Data></Cell>
-            <Cell><Data ss:Type="String">${xmlEsc(o.status || "Pending")}</Data></Cell>
-            <Cell><Data ss:Type="String">${xmlEsc(it.name)}</Data></Cell>
-            <Cell><Data ss:Type="String">${xmlEsc(it.cat || "")}</Data></Cell>
-            <Cell ss:StyleID="Currency"><Data ss:Type="Number">${price}</Data></Cell>
-            <Cell><Data ss:Type="Number">${qty}</Data></Cell>
-            <Cell ss:StyleID="Currency"><Data ss:Type="Number">${lineTotal}</Data></Cell>
-          </Row>`;
-        });
-      })
-      .join("\n");
-
-    // Sheet 3: Product Inventory & Sales rows
-    const productsXmlRows = allProds
-      .map((p) => {
-        const price = Number(p.price) || 0;
-        const stock = Number(p.stock) || 0;
-        const sold = Number(p.sold) || 0;
-        const status =
-          p.active === false
-            ? "Hidden"
-            : stock <= 0
-            ? "Out of Stock"
-            : stock <= lowThreshold
-            ? "Low Stock"
-            : "In Stock";
-        return `<Row>
-          <Cell><Data ss:Type="Number">${Number(p.id) || 0}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(p.sku || `SKU-00${p.id}`)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(p.name)}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(p.cat)}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${price}</Data></Cell>
-          <Cell><Data ss:Type="Number">${stock}</Data></Cell>
-          <Cell><Data ss:Type="Number">${sold}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${price * sold}</Data></Cell>
-          <Cell ss:StyleID="Currency"><Data ss:Type="Number">${price * stock}</Data></Cell>
-          <Cell><Data ss:Type="String">${xmlEsc(status)}</Data></Cell>
-        </Row>`;
-      })
-      .join("\n");
-
-    const workbookXml = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
- <Styles>
-  <Style ss:ID="Default" ss:Name="Normal">
-   <Alignment ss:Vertical="Center"/>
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#12242A"/>
-  </Style>
-  <Style ss:ID="Header">
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#12242A"/>
-   <Interior ss:Color="#FFC21A" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="TotalRow">
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#12242A"/>
-   <Interior ss:Color="#FFF3C4" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="Currency">
-   <NumberFormat ss:Format="&quot;₱&quot;#,##0.00"/>
-  </Style>
-  <Style ss:ID="TotalCurrency">
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1" ss:Color="#12242A"/>
-   <Interior ss:Color="#FFF3C4" ss:Pattern="Solid"/>
-   <NumberFormat ss:Format="&quot;₱&quot;#,##0.00"/>
-  </Style>
- </Styles>
- <Worksheet ss:Name="Sales &amp; Orders">
-  <Table>
-   <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">Order No</Data></Cell>
-    <Cell><Data ss:Type="String">Date</Data></Cell>
-    <Cell><Data ss:Type="String">Customer Name</Data></Cell>
-    <Cell><Data ss:Type="String">Email</Data></Cell>
-    <Cell><Data ss:Type="String">Phone</Data></Cell>
-    <Cell><Data ss:Type="String">Delivery Address</Data></Cell>
-    <Cell><Data ss:Type="String">Payment Method</Data></Cell>
-    <Cell><Data ss:Type="String">Status</Data></Cell>
-    <Cell><Data ss:Type="String">Items Summary</Data></Cell>
-    <Cell><Data ss:Type="String">Items Qty</Data></Cell>
-    <Cell><Data ss:Type="String">Subtotal</Data></Cell>
-    <Cell><Data ss:Type="String">Discount</Data></Cell>
-    <Cell><Data ss:Type="String">Promo Code</Data></Cell>
-    <Cell><Data ss:Type="String">Delivery Fee</Data></Cell>
-    <Cell><Data ss:Type="String">Grand Total</Data></Cell>
-   </Row>
-   ${ordersXmlRows}
-   <Row ss:StyleID="TotalRow">
-    <Cell><Data ss:Type="String">GRAND TOTAL</Data></Cell>
-    <Cell><Data ss:Type="String">${orders.length} Orders</Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="Number">${totalUnitsOrdered}</Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${totalSub}</Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${totalDisc}</Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${totalDeliv}</Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${totalGrand}</Data></Cell>
-   </Row>
-  </Table>
- </Worksheet>
- <Worksheet ss:Name="Order Line Items">
-  <Table>
-   <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">Order No</Data></Cell>
-    <Cell><Data ss:Type="String">Order Date</Data></Cell>
-    <Cell><Data ss:Type="String">Customer</Data></Cell>
-    <Cell><Data ss:Type="String">Order Status</Data></Cell>
-    <Cell><Data ss:Type="String">Product Name</Data></Cell>
-    <Cell><Data ss:Type="String">Category</Data></Cell>
-    <Cell><Data ss:Type="String">Unit Price</Data></Cell>
-    <Cell><Data ss:Type="String">Quantity</Data></Cell>
-    <Cell><Data ss:Type="String">Line Total</Data></Cell>
-   </Row>
-   ${lineItemsXmlRows}
-   <Row ss:StyleID="TotalRow">
-    <Cell><Data ss:Type="String">TOTAL LINE ITEMS</Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="Number">${lineItemTotalQty}</Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${lineItemTotalAmount}</Data></Cell>
-   </Row>
-  </Table>
- </Worksheet>
- <Worksheet ss:Name="Product Inventory &amp; Sales">
-  <Table>
-   <Row ss:StyleID="Header">
-    <Cell><Data ss:Type="String">ID</Data></Cell>
-    <Cell><Data ss:Type="String">SKU</Data></Cell>
-    <Cell><Data ss:Type="String">Product Name</Data></Cell>
-    <Cell><Data ss:Type="String">Category</Data></Cell>
-    <Cell><Data ss:Type="String">Unit Price</Data></Cell>
-    <Cell><Data ss:Type="String">Current Stock</Data></Cell>
-    <Cell><Data ss:Type="String">Units Sold</Data></Cell>
-    <Cell><Data ss:Type="String">Gross Revenue</Data></Cell>
-    <Cell><Data ss:Type="String">Stock Valuation</Data></Cell>
-    <Cell><Data ss:Type="String">Stock Status</Data></Cell>
-   </Row>
-   ${productsXmlRows}
-   <Row ss:StyleID="TotalRow">
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String">TOTALS</Data></Cell>
-    <Cell><Data ss:Type="String">${allProds.length} Products</Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-    <Cell><Data ss:Type="Number">${totalStock}</Data></Cell>
-    <Cell><Data ss:Type="Number">${totalSold}</Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${totalGross}</Data></Cell>
-    <Cell ss:StyleID="TotalCurrency"><Data ss:Type="Number">${totalVal}</Data></Cell>
-    <Cell><Data ss:Type="String"></Data></Cell>
-   </Row>
-  </Table>
- </Worksheet>
-</Workbook>`;
-
-    triggerBlobDownload(
-      workbookXml,
-      `pasalubong-corner-report-${stamp}.xls`,
-      "application/vnd.ms-excel;charset=utf-8;"
-    );
-    toast("Downloaded 3-sheet Excel Workbook (.xls)!");
-  }
-
   /* ==================== 9. EVENT LISTENERS ==================== */
   function initDashboardEvents() {
     // Sample order buttons
@@ -1446,21 +1030,7 @@
 
     // Quick Excel export buttons in Products & Orders toolbars
     $("#quickExportProductsBtn").addEventListener("click", () => exportInventoryCsv());
-    $("#quickExportOrdersBtn").addEventListener("click", () => exportOrdersCsv(db().getOrders()));
-
-    // Reports & Excel tab controls
-    $("#repPeriod").addEventListener("change", (e) => {
-      const isCustom = e.target.value === "custom";
-      $("#repCustomDates").hidden = !isCustom;
-      renderReports();
-    });
-    $("#repStartDate").addEventListener("change", renderReports);
-    $("#repEndDate").addEventListener("change", renderReports);
-    $("#repStatusFilter").addEventListener("change", renderReports);
-
-    $("#exportFullExcelBtn").addEventListener("click", exportFullExcelWorkbook);
-    $("#exportOrdersCsvBtn").addEventListener("click", () => exportOrdersCsv());
-    $("#exportInventoryCsvBtn").addEventListener("click", () => exportInventoryCsv());
+    $("#quickExportOrdersBtn").addEventListener("click", exportOrdersCsv);
 
     // Delegated clicks in Overview
     $("#tab-overview").addEventListener("click", async (e) => {
@@ -1740,7 +1310,6 @@
     renderProductsTable();
     renderOrdersTable();
     renderCoupons();
-    renderReports();
   }
 
   /* ==================== 10. INITIALIZATION ==================== */

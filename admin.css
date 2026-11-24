@@ -690,33 +690,6 @@
   text-align: right;
 }
 
-/* Reports & Excel Tab Styles */
-.report-filters-card {
-  padding: 18px 22px;
-}
-.report-filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  align-items: end;
-}
-.report-custom-dates {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.report-custom-dates[hidden] {
-  display: none !important;
-}
-.report-table-head {
-  padding: 18px 22px 0;
-}
-.report-total-row td {
-  background: var(--sun-soft);
-  border-top: 2.5px solid var(--ink);
-  font-family: var(--display);
-  font-size: .94rem;
-}
 .cat-custom-input {
   margin-top: 8px;
 }

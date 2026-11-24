@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <base href="/">
 <title>Admin Dashboard · Pasalubong Corner Cebu</title>
-<meta name="description" content="Admin Panel and Inventory, Order, Promo & Excel Sales Reports Manager for Pasalubong Corner Cebu.">
+<meta name="description" content="Manage products, inventory, orders, and promo codes for Pasalubong Corner Cebu.">
 <meta name="theme-color" content="#063f45">
 <meta name="referrer" content="no-referrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body class="admin-body">
 
@@ -26,7 +26,7 @@
         <h1 id="loginGateTitle">Pasalubong Corner Admin</h1>
       </div>
     </div>
-    <p class="login-sub">Sign in to manage products, inventory, customer orders, promo codes, and sales reports.</p>
+    <p class="login-sub">Sign in to manage products, inventory, customer orders, and promo codes.</p>
     <form id="adminLoginForm" method="post">
       <div class="field">
         <label for="adminEmail">Admin Email</label>
@@ -58,10 +58,10 @@
         <span class="mark" aria-hidden="true"></span>
         <span>Pasalubong Corner <small class="admin-tag">ADMIN</small></span>
       </a>
-      <button type="button" id="dbStatusBadge" class="db-badge local" title="Database sync status">
+      <span id="dbStatusBadge" role="status" class="db-badge local" title="Database sync status">
         <span class="db-dot" aria-hidden="true"></span>
         <span id="dbStatusText">Local DB Synced</span>
-      </button>
+      </span>
     </div>
 
     <div class="admin-header-right">
@@ -96,10 +96,6 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
           <span>Promo Codes</span>
           <span class="tab-count" id="navCouponCount">0</span>
-        </button>
-        <button type="button" role="tab" class="admin-tab" data-tab="reports" aria-selected="false" aria-controls="tab-reports">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Reports &amp; Excel</span>
         </button>
       </div>
     </div>
@@ -341,157 +337,6 @@
 
       <div id="couponsGrid" class="coupons-grid"></div>
     </section>
-
-    <!-- ==================== TAB 5: REPORTS & EXCEL EXPORT ==================== -->
-    <section id="tab-reports" class="tab-panel" role="tabpanel" hidden>
-      <div class="panel-head">
-        <div>
-          <span class="kicker dark">Business Intelligence &amp; Accounting</span>
-          <h2>Sales &amp; Inventory <span class="hl">Reports</span></h2>
-        </div>
-        <div class="panel-actions">
-          <button type="button" id="exportFullExcelBtn" class="admin-btn sun">⬇ Download Full Excel Workbook (.xls)</button>
-          <button type="button" id="exportOrdersCsvBtn" class="admin-btn cream">⬇ Export Orders (.csv)</button>
-          <button type="button" id="exportInventoryCsvBtn" class="admin-btn cream">⬇ Export Inventory (.csv)</button>
-        </div>
-      </div>
-
-      <!-- Report Filters Bar -->
-      <div class="admin-card report-filters-card">
-        <div class="report-filters-grid">
-          <div class="field">
-            <label for="repPeriod">Report Date Period</label>
-            <select id="repPeriod" class="admin-select">
-              <option value="all">All Time</option>
-              <option value="today">Today</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="month">This Month</option>
-              <option value="custom">Custom Date Range</option>
-            </select>
-          </div>
-
-          <div id="repCustomDates" class="report-custom-dates" hidden>
-            <div class="field">
-              <label for="repStartDate">Start Date</label>
-              <input id="repStartDate" type="date">
-            </div>
-            <div class="field">
-              <label for="repEndDate">End Date</label>
-              <input id="repEndDate" type="date">
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="repStatusFilter">Included Order Statuses</label>
-            <select id="repStatusFilter" class="admin-select">
-              <option value="valid">All Non-Cancelled Orders</option>
-              <option value="all">All Orders (Including Cancelled)</option>
-              <option value="Delivered">Delivered Orders Only</option>
-              <option value="Pending">Pending Orders Only</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Report Summary KPI Cards -->
-      <div class="kpi-grid">
-        <article class="kpi-card sun">
-          <div class="kpi-top">
-            <span class="kpi-label">Filtered Sales Revenue</span>
-            <span class="kpi-ico" aria-hidden="true">₱</span>
-          </div>
-          <strong class="kpi-val" id="repKpiRevenue">₱0</strong>
-          <small class="kpi-sub" id="repKpiRevenueSub">Net sales for selected period</small>
-        </article>
-
-        <article class="kpi-card sea">
-          <div class="kpi-top">
-            <span class="kpi-label">Orders &amp; Units Sold</span>
-            <span class="kpi-ico" aria-hidden="true">#</span>
-          </div>
-          <strong class="kpi-val" id="repKpiOrders">0</strong>
-          <small class="kpi-sub" id="repKpiOrdersSub">0 total units purchased</small>
-        </article>
-
-        <article class="kpi-card leaf">
-          <div class="kpi-top">
-            <span class="kpi-label">Average Order Value</span>
-            <span class="kpi-ico" aria-hidden="true">Ø</span>
-          </div>
-          <strong class="kpi-val" id="repKpiAvg">₱0</strong>
-          <small class="kpi-sub" id="repKpiAvgSub">₱0 total discounts granted</small>
-        </article>
-
-        <article class="kpi-card coral">
-          <div class="kpi-top">
-            <span class="kpi-label">Current Inventory Value</span>
-            <span class="kpi-ico" aria-hidden="true">★</span>
-          </div>
-          <strong class="kpi-val" id="repKpiInventoryValue">₱0</strong>
-          <small class="kpi-sub" id="repKpiInventorySub">Across 0 catalog products</small>
-        </article>
-      </div>
-
-      <!-- Live Sales & Orders Report Preview Table -->
-      <div class="admin-card flush">
-        <div class="card-head report-table-head">
-          <div>
-            <h3>Sales &amp; Orders Report Preview</h3>
-            <p class="card-sub">Matches the exact rows exported to your Excel Sales &amp; Orders sheet</p>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="admin-table report-table">
-            <thead>
-              <tr>
-                <th>Order #</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Payment</th>
-                <th>Status</th>
-                <th>Items Qty</th>
-                <th>Subtotal</th>
-                <th>Discount</th>
-                <th>Delivery</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody id="repOrdersBody"></tbody>
-            <tfoot id="repOrdersFoot"></tfoot>
-          </table>
-        </div>
-      </div>
-
-      <!-- Product Performance & Inventory Report Table -->
-      <div class="admin-card flush">
-        <div class="card-head report-table-head">
-          <div>
-            <h3>Product Performance &amp; Inventory Valuation</h3>
-            <p class="card-sub">Current stock levels, units sold, gross revenue, and retail stock valuation</p>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="admin-table report-table">
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Unit Price</th>
-                <th>Stock Left</th>
-                <th>Units Sold</th>
-                <th>Gross Revenue</th>
-                <th>Stock Valuation</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="repProductsBody"></tbody>
-            <tfoot id="repProductsFoot"></tfoot>
-          </table>
-        </div>
-      </div>
-    </section>
   </main>
 </div>
 
@@ -691,6 +536,6 @@
 
 <script src="firebase-config.js"></script>
 <script src="db.js?v=2"></script>
-<script src="admin.js?v=3"></script>
+<script src="admin.js?v=4"></script>
 </body>
 </html>
