@@ -14,23 +14,27 @@
 <body>
 <a class="skip" href="#shop">Skip to products</a>
 
-<div class="announce">Free email receipt on every order · Handpicked from Cebu</div>
+<div id="announceBar" class="announce">Free email receipt on every order · Handpicked from Cebu</div>
 
 <header class="bar">
-  <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span>Pasalubong Corner</a>
+  <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span><span id="storeBrandName">Pasalubong Corner</span></a>
   <nav class="nav" aria-label="Main">
     <a href="#categories">Categories</a>
     <a href="#shop">Shop</a>
     <a href="#about">Why us</a>
   </nav>
   <div class="actions">
+    <button id="trackBtn" class="track-btn" type="button" aria-label="Track order">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <span class="track-label">Track order</span>
+    </button>
     <button id="acctBtn" class="acct-btn" type="button" aria-label="Log in or create account">
       <span class="avatar" id="acctAvatar" aria-hidden="true">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
       </span>
       <span class="acct-label" id="acctLabel">Log in</span>
     </button>
-    <button id="cartBtn" class="cart-btn" aria-label="Open cart">
+    <button id="cartBtn" class="cart-btn" type="button" aria-label="Open cart">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
       <span class="cart-label">Cart</span>
       <span id="count">0</span>
@@ -53,9 +57,9 @@
           <button class="btn cream" type="button" id="heroSignup">Create account</button>
         </div>
         <ul class="pills">
-          <li><strong>6</strong> Cebu favorites</li>
+          <li><strong id="heroProductCount">6</strong> Cebu favorites</li>
           <li><strong>100%</strong> local makers</li>
-          <li><strong>Email</strong> receipt</li>
+          <li><strong>Live</strong> order tracking</li>
         </ul>
       </div>
       <div class="collage" aria-hidden="true">
@@ -109,6 +113,7 @@
             <span class="sr">Sort products</span>
             <select id="sort">
               <option value="featured">Featured</option>
+              <option value="popular">Most popular</option>
               <option value="low">Price: low to high</option>
               <option value="high">Price: high to low</option>
               <option value="az">Name: A to Z</option>
@@ -150,7 +155,7 @@
 <footer class="foot">
   <div class="foot-grid">
     <div>
-      <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span>Pasalubong Corner</a>
+      <a class="brand" href="#top"><span class="mark" aria-hidden="true"></span><span>Pasalubong Corner</span></a>
       <p>Cebu’s favorite treats and handmade goods, packed with care and sent your way.</p>
     </div>
     <div>
@@ -158,10 +163,11 @@
       <ul id="footCats"></ul>
     </div>
     <div>
-      <h4>Visit</h4>
+      <h4>Quick links</h4>
       <ul>
         <li>Cebu City, Philippines</li>
         <li><a href="#shop">Browse products</a></li>
+        <li><button type="button" id="footTrackBtn" class="foot-link">Track order</button></li>
       </ul>
     </div>
   </div>
@@ -185,17 +191,54 @@
       <h2 id="cartTitle">Your cart</h2>
       <p id="cartSub" class="cart-sub">0 items</p>
     </div>
-    <button id="closeCart" class="icon-btn" aria-label="Close cart">
+    <button id="closeCart" class="icon-btn" type="button" aria-label="Close cart">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
   </div>
 
   <div class="drawer-body">
+    <div id="freeShipBox" class="ship-box">
+      <p id="freeShipText" class="ship-text">Free delivery on orders ₱500+</p>
+      <div class="ship-bar" aria-hidden="true"><span id="freeShipFill" class="ship-fill"></span></div>
+    </div>
+
     <div id="items" class="items"></div>
 
     <div id="checkoutWrap" class="checkout">
-      <div class="total"><span>Total</span><strong id="total">₱0</strong></div>
-      <p class="note">Delivery fee, if any, is confirmed when we contact you.</p>
+      <!-- Promo code box -->
+      <div class="promo-box">
+        <label for="promoInput" class="promo-label">Promo code</label>
+        <div class="promo-row">
+          <input id="promoInput" type="text" placeholder="Enter code (e.g. CEBU10)" autocomplete="off">
+          <button id="applyPromoBtn" class="promo-btn" type="button">Apply</button>
+        </div>
+        <div class="promo-hints" aria-label="Available promo codes">
+          <span>Try:</span>
+          <button type="button" class="promo-chip" data-promo="CEBU10">CEBU10</button>
+          <button type="button" class="promo-chip" data-promo="PASALUBONG50">PASALUBONG50</button>
+          <button type="button" class="promo-chip" data-promo="FREESHIP">FREESHIP</button>
+        </div>
+        <div id="promoActive" class="promo-active" hidden>
+          <div class="promo-active-info">
+            <strong id="promoCodeBadge" class="promo-badge">CEBU10</strong>
+            <span id="promoDescText">10% off applied</span>
+          </div>
+          <button id="removePromoBtn" class="promo-rm" type="button" aria-label="Remove promo code">Remove</button>
+        </div>
+        <p id="promoMsg" class="promo-msg" role="status"></p>
+      </div>
+
+      <!-- Cost breakdown -->
+      <div class="breakdown">
+        <div class="bk-row"><span>Subtotal</span><strong id="subtotal">₱0</strong></div>
+        <div id="discountRow" class="bk-row discount" hidden>
+          <span id="discountLabel">Discount</span>
+          <strong id="discountVal">−₱0</strong>
+        </div>
+        <div class="bk-row"><span>Delivery fee</span><strong id="deliveryVal">₱60</strong></div>
+        <div class="total"><span>Total</span><strong id="total">₱0</strong></div>
+      </div>
+
       <p id="guestNudge" class="nudge">Have an account? <button type="button" class="linkish" data-open-auth="login">Log in</button> or <button type="button" class="linkish" data-open-auth="signup">create one</button> to fill in your details automatically.</p>
 
       <form id="checkoutForm" novalidate>
@@ -220,6 +263,37 @@
           <textarea id="f-address" name="address" rows="2" required autocomplete="street-address" placeholder="House no., street, barangay, city"></textarea>
           <p class="field-err" data-err="address"></p>
         </div>
+        <div class="field">
+          <span class="field-label">Payment method</span>
+          <div class="pay-grid" role="radiogroup" aria-label="Payment method">
+            <label class="pay-opt">
+              <input type="radio" name="paymentMethod" value="COD" checked>
+              <span class="pay-card">
+                <strong>COD</strong>
+                <small>Cash on Delivery</small>
+              </span>
+            </label>
+            <label class="pay-opt">
+              <input type="radio" name="paymentMethod" value="GCash">
+              <span class="pay-card">
+                <strong>GCash</strong>
+                <small>E-wallet</small>
+              </span>
+            </label>
+            <label class="pay-opt">
+              <input type="radio" name="paymentMethod" value="Bank Transfer">
+              <span class="pay-card">
+                <strong>Bank</strong>
+                <small>Transfer</small>
+              </span>
+            </label>
+          </div>
+          <p id="paymentHint" class="pay-hint">Pay with cash upon doorstep delivery.</p>
+        </div>
+        <div class="field">
+          <label for="f-notes">Delivery notes <span class="hint">(optional)</span></label>
+          <textarea id="f-notes" name="notes" rows="2" placeholder="Landmarks, gate code, or special instructions"></textarea>
+        </div>
         <button id="placeBtn" class="primary" type="submit">Place order</button>
         <p id="msg" role="status"></p>
       </form>
@@ -227,9 +301,60 @@
   </div>
 </aside>
 
+<!-- Product Quick-View Dialog -->
+<dialog id="productDlg" class="dlg wide product-dlg" aria-labelledby="qvTitle">
+  <button class="icon-btn dlg-x" type="button" data-close aria-label="Close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="qv-grid">
+    <div id="qvPicWrap" class="qv-pic">
+      <img id="qvImg" src="images/01.jpg" alt="">
+      <span id="qvBadge" class="badge" hidden></span>
+    </div>
+    <div class="qv-body">
+      <div class="qv-top">
+        <span id="qvCat" class="cat-tag">Snacks</span>
+        <span id="qvSku" class="sku-tag">SKU: PC-001</span>
+      </div>
+      <h2 id="qvTitle">Product title</h2>
+      <div class="qv-price-row">
+        <span id="qvPrice" class="price">₱0</span>
+        <del id="qvComparePrice" class="compare-price" hidden>₱0</del>
+        <span id="qvStock" class="stock-badge in">In stock</span>
+      </div>
+      <p id="qvDesc" class="qv-desc"></p>
+      <div class="qv-actions">
+        <div id="qvCtl" class="qv-ctl"></div>
+        <button id="qvCartBtn" type="button" class="btn cream qv-open-cart">View cart</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Order Tracking Dialog -->
+<dialog id="trackDlg" class="dlg wide track-dlg" aria-labelledby="trackTitle">
+  <button class="icon-btn dlg-x" type="button" data-close aria-label="Close">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <span class="mark big" aria-hidden="true"></span>
+  <h2 id="trackTitle">Track your order</h2>
+  <p class="dlg-sub">Enter your order number (e.g. <strong>ORD-...</strong>) to inspect its live delivery status, items, and receipt.</p>
+
+  <form id="trackForm" class="track-form" novalidate>
+    <div class="track-bar">
+      <label for="trackInput" class="sr">Order number</label>
+      <input id="trackInput" name="orderNo" type="text" placeholder="e.g. ORD-M8X9K2" autocomplete="off" required>
+      <button id="trackSubmitBtn" class="primary" type="submit">Track order</button>
+    </div>
+    <p id="trackMsg" class="form-msg" role="status" data-msg></p>
+  </form>
+
+  <div id="trackResult" class="track-result" hidden></div>
+</dialog>
+
 <!-- Log in / Sign up -->
 <dialog id="authDlg" class="dlg" aria-labelledby="authTitle">
-  <button class="icon-btn dlg-x" data-close aria-label="Close">
+  <button class="icon-btn dlg-x" type="button" data-close aria-label="Close">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
   <span class="mark big" aria-hidden="true"></span>
@@ -285,7 +410,7 @@
 
 <!-- My account -->
 <dialog id="acctDlg" class="dlg wide" aria-labelledby="acctTitle">
-  <button class="icon-btn dlg-x" data-close aria-label="Close">
+  <button class="icon-btn dlg-x" type="button" data-close aria-label="Close">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
   <div class="acct-head">
@@ -327,6 +452,8 @@
   <button type="button" class="logout" id="logoutBtn">Log out</button>
 </dialog>
 
+<script src="firebase-config.js"></script>
+<script src="db.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,278 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model — Pasalubong Corner E-Commerce (PasalubongDB)
+// ===============================================================
+//
+// This security rules file assumes the following data structures used by db.js:
+//
+// Collection: products
+// Document ID: {productId} (numeric product ID as string, e.g. "1", "2")
+// Fields:
+//   - id: number (required, >= 0) - Unique numeric product identifier
+//   - sku: string (optional, <= 120 chars) - Stock keeping unit code
+//   - name: string (required, 1..300 chars) - Product display title
+//   - desc: string (optional, <= 1000 chars) - Short card subtitle/description
+//   - longDesc: string (optional, <= 5000 chars) - Detailed product modal description
+//   - price: number (required, >= 0) - Unit price in PHP
+//   - comparePrice: number (optional, >= 0) - Compare-at strikethrough price in PHP
+//   - cat: string (required, 1..100 chars) - Product category (e.g. "Snacks", "Crafts", "Apparel")
+//   - img: string (optional, <= 750000 chars) - Relative image path, URL, or compressed data URL
+//   - badge: string (optional, <= 120 chars) - Promotional badge label
+//   - cover: bool (optional) - Whether image uses object-fit cover
+//   - stock: number (required, >= 0) - Current available inventory count
+//   - sold: number (optional, >= 0) - Cumulative units sold counter
+//   - featured: bool (optional) - Highlighted product flag
+//   - active: bool (optional) - Storefront visibility flag
+//
+// Collection: orders
+// Document ID: {orderNo} (order reference string, e.g. "ORD-...")
+// Fields:
+//   - no: string (required, 1..120 chars, immutable on update) - Unique order reference number
+//   - date: number | string | timestamp (optional) - Order creation epoch timestamp
+//   - updatedAt: number | string | timestamp (optional) - Last status update timestamp
+//   - status: string (optional, enum) - One of ['Pending', 'Confirmed', 'Packing', 'Out for Delivery', 'Delivered', 'Cancelled']
+//   - customer: map (required) - Customer delivery details { name, email, phone, address }
+//   - items: list (required, <= 200 items) - Purchased line items [{ id, name, price, qty, img, cat }]
+//   - subtotal: number (optional, >= 0) - Sum of line items before discount & delivery
+//   - discount: number (optional, >= 0) - Applied promo discount amount in PHP
+//   - couponCode: string (optional, <= 64 chars) - Applied promo code string
+//   - deliveryFee: number (optional, >= 0) - Delivery fee in PHP
+//   - total: number (required, >= 0) - Final order total in PHP
+//   - paymentMethod: string (optional, <= 100 chars) - Payment method (e.g. "COD", "GCash", "Bank Transfer")
+//   - notes: string (optional, <= 2000 chars) - Optional customer delivery notes
+//
+// Collection: coupons
+// Document ID: {couponCode} (uppercase coupon code, e.g. "CEBU10")
+// Fields:
+//   - code: string (required, 1..64 chars) - Uppercase promo code identifier
+//   - type: string (required, enum) - One of ['percent', 'fixed', 'freeship']
+//   - value: number (required, >= 0) - Discount percentage or PHP amount
+//   - minOrder: number (optional, >= 0) - Minimum order subtotal required
+//   - active: bool (optional) - Whether the promo code is currently enabled
+//   - usageCount: number (optional, >= 0) - Total times redeemed
+//   - desc: string (optional, <= 500 chars) - Human-readable coupon description
+//
+// Collection: settings
+// Document ID: {docId} (primary singleton document: "store")
+// Fields:
+//   - storeName: string (required, 1..200 chars) - Storefront display name
+//   - announcement: string (optional, <= 1000 chars) - Top announcement banner copy
+//   - deliveryFee: number (required, >= 0) - Standard delivery fee in PHP
+//   - freeDeliveryThreshold: number (required, >= 0) - Order subtotal threshold for free delivery
+//   - supportEmail: string (optional, <= 320 chars) - Store support email address
+//   - supportPhone: string (optional, <= 100 chars) - Store support phone number
+//   - gcashNumber: string (optional, <= 200 chars) - GCash account details for checkout
+//   - lowStockThreshold: number (optional, >= 0) - Inventory threshold for low-stock alerts
+//   - categories: list (optional, <= 100 items) - Active product category names
+//   - catImages: map (optional, <= 100 entries) - Category thumbnail image mappings
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user owns the resource (for user-owned documents)
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if user is owner based on document's uid field
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    // Verify UID hasn't been tampered with on create
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    // Ensure uid field is not modified on update
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == resource.data.uid;
+    }
+
+    // Validate required fields exist
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that the document contains only the allowed fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate string length on request.resource.data
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    // Validate optional string (if present, must be string and within length)
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+        (request.resource.data[field] is string &&
+         request.resource.data[field].size() >= minLen &&
+         request.resource.data[field].size() <= maxLen);
+    }
+
+    // Validate that a list is a list and enforces size limits
+    function isValidList(listVal, maxSize) {
+      return listVal is list && listVal.size() <= maxSize;
+    }
+
+    // Validate that a map contains only allowed keys
+    function isValidMap(mapData, allowedKeys) {
+      return mapData is map && mapData.keys().hasOnly(allowedKeys);
+    }
+
+    // Validate that immutable fields have not been modified during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators (Used in BOTH create and update rules)
+    // ===============================================================
+
+    function isValidProduct(data) {
+      return hasRequiredFields(['id', 'name', 'price', 'cat', 'stock']) &&
+        hasOnlyAllowedFields([
+          'id', 'sku', 'name', 'desc', 'longDesc', 'price', 'comparePrice',
+          'cat', 'img', 'badge', 'cover', 'stock', 'sold', 'featured', 'active'
+        ]) &&
+        data.id is number && data.id >= 0 && data.id <= 10000000 &&
+        validStringLength('name', 1, 300) &&
+        data.price is number && data.price >= 0 && data.price <= 100000000 &&
+        validStringLength('cat', 1, 100) &&
+        data.stock is number && data.stock >= 0 && data.stock <= 10000000 &&
+        isValidOptionalString('sku', 0, 120) &&
+        isValidOptionalString('desc', 0, 1000) &&
+        isValidOptionalString('longDesc', 0, 5000) &&
+        (!('comparePrice' in data) || (data.comparePrice is number && data.comparePrice >= 0 && data.comparePrice <= 100000000)) &&
+        isValidOptionalString('img', 0, 750000) &&
+        isValidOptionalString('badge', 0, 120) &&
+        (!('cover' in data) || data.cover is bool) &&
+        (!('sold' in data) || (data.sold is number && data.sold >= 0 && data.sold <= 100000000)) &&
+        (!('featured' in data) || data.featured is bool) &&
+        (!('active' in data) || data.active is bool);
+    }
+
+    function isValidOrderCustomer(cust) {
+      return isValidMap(cust, ['name', 'email', 'phone', 'address']) &&
+        (!('name' in cust) || (cust.name is string && cust.name.size() <= 200)) &&
+        (!('email' in cust) || (cust.email is string && cust.email.size() <= 320)) &&
+        (!('phone' in cust) || (cust.phone is string && cust.phone.size() <= 100)) &&
+        (!('address' in cust) || (cust.address is string && cust.address.size() <= 1000));
+    }
+
+    function isValidOrder(data) {
+      return hasRequiredFields(['no', 'total', 'items', 'customer']) &&
+        hasOnlyAllowedFields([
+          'no', 'date', 'updatedAt', 'status', 'customer', 'items',
+          'subtotal', 'discount', 'couponCode', 'deliveryFee', 'total',
+          'paymentMethod', 'notes'
+        ]) &&
+        validStringLength('no', 1, 120) &&
+        data.total is number && data.total >= 0 && data.total <= 100000000 &&
+        isValidList(data.items, 200) &&
+        isValidOrderCustomer(data.customer) &&
+        (!('date' in data) || (data.date is number || data.date is string || data.date is timestamp)) &&
+        (!('updatedAt' in data) || (data.updatedAt is number || data.updatedAt is string || data.updatedAt is timestamp)) &&
+        (!('status' in data) || data.status in ['Pending', 'Confirmed', 'Packing', 'Out for Delivery', 'Delivered', 'Cancelled']) &&
+        (!('subtotal' in data) || (data.subtotal is number && data.subtotal >= 0 && data.subtotal <= 100000000)) &&
+        (!('discount' in data) || (data.discount is number && data.discount >= 0 && data.discount <= 100000000)) &&
+        isValidOptionalString('couponCode', 0, 64) &&
+        (!('deliveryFee' in data) || (data.deliveryFee is number && data.deliveryFee >= 0 && data.deliveryFee <= 10000000)) &&
+        isValidOptionalString('paymentMethod', 0, 100) &&
+        isValidOptionalString('notes', 0, 2000);
+    }
+
+    function isValidCoupon(data) {
+      return hasRequiredFields(['code', 'type', 'value']) &&
+        hasOnlyAllowedFields(['code', 'type', 'value', 'minOrder', 'active', 'usageCount', 'desc']) &&
+        validStringLength('code', 1, 64) &&
+        data.type in ['percent', 'fixed', 'freeship'] &&
+        data.value is number && data.value >= 0 && data.value <= 10000000 &&
+        (!('minOrder' in data) || (data.minOrder is number && data.minOrder >= 0 && data.minOrder <= 100000000)) &&
+        (!('active' in data) || data.active is bool) &&
+        (!('usageCount' in data) || (data.usageCount is number && data.usageCount >= 0 && data.usageCount <= 100000000)) &&
+        isValidOptionalString('desc', 0, 500);
+    }
+
+    function isValidSettings(data) {
+      return hasRequiredFields(['storeName', 'deliveryFee', 'freeDeliveryThreshold']) &&
+        hasOnlyAllowedFields([
+          'storeName', 'announcement', 'deliveryFee', 'freeDeliveryThreshold',
+          'supportEmail', 'supportPhone', 'gcashNumber', 'lowStockThreshold',
+          'categories', 'catImages'
+        ]) &&
+        validStringLength('storeName', 1, 200) &&
+        data.deliveryFee is number && data.deliveryFee >= 0 && data.deliveryFee <= 1000000 &&
+        data.freeDeliveryThreshold is number && data.freeDeliveryThreshold >= 0 && data.freeDeliveryThreshold <= 100000000 &&
+        isValidOptionalString('announcement', 0, 1000) &&
+        isValidOptionalString('supportEmail', 0, 320) &&
+        isValidOptionalString('supportPhone', 0, 100) &&
+        isValidOptionalString('gcashNumber', 0, 200) &&
+        (!('lowStockThreshold' in data) || (data.lowStockThreshold is number && data.lowStockThreshold >= 0 && data.lowStockThreshold <= 1000000)) &&
+        (!('categories' in data) || isValidList(data.categories, 100)) &&
+        (!('catImages' in data) || (data.catImages is map && data.catImages.size() <= 100));
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // Products catalog & inventory
+    match /products/{productId} {
+      allow get, list: if true;
+      allow create: if isValidProduct(request.resource.data);
+      allow update: if isValidProduct(request.resource.data) &&
+        areImmutableFieldsUnchanged(['id']);
+      allow delete: if true;
+    }
+
+    // Customer orders & fulfillment tracking
+    match /orders/{orderNo} {
+      allow get, list: if true;
+      allow create: if isValidOrder(request.resource.data);
+      allow update: if isValidOrder(request.resource.data) &&
+        areImmutableFieldsUnchanged(['no']);
+      allow delete: if true;
+    }
+
+    // Promotional discount coupons
+    match /coupons/{couponCode} {
+      allow get, list: if true;
+      allow create: if isValidCoupon(request.resource.data);
+      allow update: if isValidCoupon(request.resource.data) &&
+        areImmutableFieldsUnchanged(['code']);
+      allow delete: if true;
+    }
+
+    // Storefront configuration & settings (settings/store)
+    match /settings/{docId} {
+      allow get, list: if true;
+      allow create: if isValidSettings(request.resource.data);
+      allow update: if isValidSettings(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Default deny for any other collection/document path
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
