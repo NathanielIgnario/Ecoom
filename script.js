@@ -811,7 +811,6 @@ function renderAuthUI() {
     $("#acctBtn").setAttribute("aria-label", "Log in or create account");
   }
   $("#guestNudge").hidden = !!u;
-  prefillCheckout();
 }
 
 function prefillCheckout() {
@@ -1232,8 +1231,12 @@ $("#checkoutForm").addEventListener("submit", async (e) => {
     setPromoMsg("");
     renderCart();
     f.reset();
+    ["name", "email", "phone", "address", "notes"].forEach((k) => {
+      if (f.elements[k]) f.elements[k].value = "";
+    });
+    if ($("#couponInput")) $("#couponInput").value = "";
+    if ($("#promoInput")) $("#promoInput").value = "";
     setErrors(f, {});
-    prefillCheckout();
     updatePaymentHint();
   } catch (err) {
     setMsg(f, err.message + " Your cart is saved, try again.", "err");
